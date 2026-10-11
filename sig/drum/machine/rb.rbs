@@ -1,0 +1,10 @@
+module Drum
+  module Machine
+    module Rb
+      module Version
+        VERSION: String
+      end
+      VERSION: String
+    end
+  end
+end
