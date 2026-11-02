@@ -2,53 +2,92 @@
 
 require "gtk4"
 require "adwaita"
+require_relative "../drum/machine/rb/version"
+require_relative "about_dialog"
+require_relative "constants"
+require_relative "shortcuts_dialog"
+require_relative "style"
+require_relative "window"
 
 module DrumMachine
-  # The port's application: one window, and a status page saying the port has
-  # not been written yet. Everything else grows from here — replace the status
-  # page with the real content, keep the shape.
+  # Application — ported from upstream's src/application.py and src/main.py.
+  #
+  # Adwaita::Application is broken in the Ruby bindings, so the application
+  # object comes from Gtk and only the window is Adwaita.
   #
   # House style (see .claude/skills/ruby-gtk): every widget is a memoized
   # method, all configuration lives in its `tap`, assembly happens only in
   # `build`, and the launcher is one expression.
   class Application
+    APPLICATION_ID = "io.github.revisto.drum-machine"
+
+    # app.about has no accelerator upstream. app.shortcuts does not exist
+    # upstream at all — see ShortcutsDialog for why this port installs it.
+    ACTIONS = [
+      ["about", :on_about, []],
+      ["shortcuts", :on_shortcuts, ["<primary>question"]],
+    ].freeze
+
+    def initialize(version: Drum::Machine::Rb::VERSION)
+      @version = version
+    end
+
     def build
       app.tap do
         app.signal_connect("activate") do
-          window.tap do |win|
-            win.content = toolbar_view
-          end
+          Adwaita.init
+          Style.install
+          icon_theme_search_path
+          ACTIONS.each { |name, handler, accelerators| create_action(name, handler, accelerators) }
 
-          toolbar_view.tap do |view|
-            view.add_top_bar(header_bar)
-            view.content = status_page
+          main_window.tap do |win|
+            win.build
+            win.present
           end
-
-          window.present
         end
       end
     end
 
-    # Adwaita::Application is broken in the Ruby bindings; the application
-    # object comes from Gtk and only the window is Adwaita.
-    def app = @app ||= Gtk::Application.new("org.rubygtkproject.DrumMachine", :default_flags)
+    def run = app.run([])
 
-    def window
-      @window ||= Adwaita::ApplicationWindow.new(app).tap do |win|
-        win.title = "drum-machine"
-        win.set_default_size(800, 600)
+    def app = @app ||= Gtk::Application.new(APPLICATION_ID, :default_flags)
+
+    def main_window = @main_window ||= Window.new(app)
+
+    def on_about
+      AboutDialog.new(version: @version).tap do |dialog|
+        dialog.build
+        dialog.present(app.active_window)
       end
     end
 
-    def toolbar_view = @toolbar_view ||= Adwaita::ToolbarView.new
-    def header_bar = @header_bar ||= Adwaita::HeaderBar.new
-
-    def status_page
-      @status_page ||= Adwaita::StatusPage.new.tap do |page|
-        page.title = "drum-machine"
-        page.description = "The Ruby port has not been written yet."
-        page.icon_name = "applications-engineering-symbolic"
+    def on_shortcuts
+      ShortcutsDialog.new.tap do |dialog|
+        dialog.build
+        dialog.present(app.active_window)
       end
     end
+
+    private
+
+      # The export button's share-symbolic is a bundled SVG, not a stock icon
+      # name, so data/icons goes on the theme's search path.
+      def icon_theme_search_path
+        Gdk::Display.default.then do |display|
+          if display
+            Gtk::IconTheme.get_for_display(display).add_search_path(Constants.icons_dir)
+          end
+        end
+      end
+
+      def create_action(name, handler, accelerators)
+        Gio::SimpleAction.new(name, nil).tap do |action|
+          action.signal_connect("activate") { public_send(handler) }
+          app.add_action(action)
+          unless accelerators.empty?
+            app.set_accels_for_action("app.#{name}", accelerators)
+          end
+        end
+      end
   end
 end
