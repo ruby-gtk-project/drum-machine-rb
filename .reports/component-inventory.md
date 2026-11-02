@@ -5,9 +5,12 @@ Survey for the full-parity Ruby GTK4/Libadwaita port.
 - **Upstream**: `origin/main` in this repo — Python/PyGObject, GTK 4 + libadwaita 1,
   `Gtk.Template` against `src/window.ui` and three blueprint files, plus one
   standalone blueprint (`shortcuts-dialog.blp`).
-- **Port**: the `ruby` branch. `lib/` currently holds `drum_machine.rb`,
-  `drum_machine/application.rb` (a `StatusPage` placeholder) and
-  `drum/machine/rb/version.rb`. **No real app UI exists yet.**
+- **Port**: the `ruby` branch. `lib/` holds 33 files / 5,456 lines across
+  `lib/drum_machine/*.rb` (plus `lib/drum_machine.rb` and
+  `lib/drum/machine/rb/version.rb`). **Every component below now has its
+  `lib/*.rb` file**; this revision re-surveys upstream and marks the port side
+  against the tree as it stands after `90a3ede` ("Port the window, grid,
+  services and dialogs from Python").
 - **Method**: `component-identification` skill. Declarative UI read first
   (`src/window.ui`, `src/gtk/*.blp`), then every Python file that builds or
   drives a widget, then the two stylesheets, the GResource manifest, the
@@ -37,7 +40,7 @@ Totals: 1 window, 5 dialogs (incl. About), 2 menu models, 1 popover menu,
 
 ## 1. `src/application.py` (+ `src/main.py`) — the application object
 
-Target: `lib/drum_machine/application.rb` — **exists as a placeholder only**.
+Target: `lib/drum_machine/application.rb` — **exists**.
 
 | Widget | × | CSS | Signals / actions | Notes |
 |---|---:|---|---|---|
@@ -54,7 +57,7 @@ Keep that.
 
 ## 2. `src/application.py` → `on_about_action` — About dialog
 
-Target: `lib/drum_machine/about_dialog.rb` — **missing**.
+Target: `lib/drum_machine/about_dialog.rb` — **exists**.
 
 | Widget | × | CSS | Signals | Notes |
 |---|---:|---|---|---|
@@ -82,7 +85,7 @@ Adwaita version. The Ruby equivalent must use `Gtk::Version` (there is no
 
 ## 3. `src/window.py` + `src/window.ui` — the main window
 
-Target: `lib/drum_machine/window.rb` — **missing**.
+Target: `lib/drum_machine/window.rb` — **exists**.
 
 | Widget | × | CSS | Signals / handler | Notes |
 |---|---:|---|---|---|
@@ -132,7 +135,7 @@ Behaviour the port has to carry:
 
 ## 4. `src/window.ui` → `menu primary_menu` — primary menu
 
-Target: `lib/drum_machine/primary_menu.rb` — **missing**.
+Target: `lib/drum_machine/primary_menu.rb` — **exists**.
 
 `Gio.Menu`, three sections, five items:
 
@@ -146,7 +149,7 @@ Target: `lib/drum_machine/primary_menu.rb` — **missing**.
 
 ## 5. `src/window.ui` → `menu pattern_menu` + `file_dialog_handler.setup_pattern_menu` — pattern menu
 
-Target: `lib/drum_machine/pattern_menu.rb` — **missing**.
+Target: `lib/drum_machine/pattern_menu.rb` — **exists**.
 
 The `.ui` declares an empty `pattern_menu`; Python replaces it at startup with
 a `Gio.Menu` holding one section titled _"Default Patterns"_ and one
@@ -158,7 +161,7 @@ _"Slow"_, _"Chill"_, resolved to `data/patterns/<name>.mid`.
 
 ## 6. `src/gtk/shortcuts-dialog.blp` — keyboard shortcuts dialog
 
-Target: `lib/drum_machine/shortcuts_dialog.rb` — **missing**.
+Target: `lib/drum_machine/shortcuts_dialog.rb` — **exists**.
 
 A standalone `Adw.ShortcutsDialog` named `shortcuts_dialog` with **no backing
 source file** — 6 `Adw.ShortcutsSection`, 15 `Adw.ShortcutsItem`, all strings
@@ -178,7 +181,7 @@ the pattern menu installs.
 
 ## 7. `src/handlers/window_actions.py` — window actions and accelerators
 
-Target: `lib/drum_machine/window_actions.rb` — **missing**.
+Target: `lib/drum_machine/window_actions.rb` — **exists**.
 
 18 `Gio.SimpleAction`s installed in a loop, so **none of them appears in a
 scan of literals** — the full list:
@@ -209,7 +212,7 @@ in `file_dialog_handler`) and `win.open-file` (`s`, in `window.py`).
 
 ## 8. `src/ui/drum_grid_builder.py` — the drum grid
 
-Target: `lib/drum_machine/drum_grid.rb` — **missing**. The largest unit (≈700
+Target: `lib/drum_machine/drum_grid.rb` — **exists**. The largest unit (≈700
 lines) and the heart of the app. Entirely code-built; no `.ui`.
 
 | Widget | × | CSS | Signals / controllers | Notes |
@@ -250,7 +253,7 @@ Rebuild entry points: `rebuild_carousel(focus_beat_index:)`,
 
 ## 9. `src/ui/drum_grid_builder.py` → `_show_drum_part_context_menu` — drum-part popover menu
 
-Target: `lib/drum_machine/drum_part_menu.rb` — **missing**.
+Target: `lib/drum_machine/drum_part_menu.rb` — **exists**.
 
 | Widget | × | CSS | Signals | Notes |
 |---|---:|---|---|---|
@@ -268,7 +271,7 @@ Target: `lib/drum_machine/drum_part_menu.rb` — **missing**.
 
 ## 10. `src/ui/drum_grid_builder.py` → `create_new_drum_placeholder` — drag-and-drop placeholder
 
-Target: `lib/drum_machine/drum_grid.rb` (same file) — **missing**.
+Target: `lib/drum_machine/drum_grid.rb` (same file) — **exists**.
 
 | Widget | × | CSS | Signals | Notes |
 |---|---:|---|---|---|
@@ -280,7 +283,7 @@ over the window and disappears on leave or drop.
 
 ## 11. `src/dialogs/midi_mapping_dialog.py` — MIDI mapping dialog
 
-Target: `lib/drum_machine/midi_mapping_dialog.rb` — **missing**. Code-built,
+Target: `lib/drum_machine/midi_mapping_dialog.rb` — **exists**. Code-built,
 no blueprint.
 
 | Widget | × | CSS | Signals | Notes |
@@ -303,7 +306,7 @@ translatable strings the port must carry.
 
 ## 12. `src/dialogs/audio_export_dialog.py` + `src/gtk/audio-export-dialog.blp` — audio export dialog
 
-Target: `lib/drum_machine/audio_export_dialog.rb` — **missing**.
+Target: `lib/drum_machine/audio_export_dialog.rb` — **exists**.
 
 | Widget | × | CSS | Signals | Notes |
 |---|---:|---|---|---|
@@ -340,7 +343,7 @@ rows → fold into the same port file or `lib/drum_machine/export_metadata.rb`.
 
 ## 13. `src/utils/export_progress.py` — export progress + background task
 
-Target: `lib/drum_machine/export_progress.rb` — **missing**.
+Target: `lib/drum_machine/export_progress.rb` — **exists**.
 
 Not a widget, but it drives four of the dialog's widgets, so it belongs in the
 inventory. `ExportPhase` enum (`preparing`/`rendering`/`saving`) →
@@ -354,7 +357,7 @@ through `GLib::Idle.add`.
 
 ## 14. `src/dialogs/reset_defaults_dialog.py` + `src/gtk/reset-defaults-dialog.blp` — reset confirmation
 
-Target: `lib/drum_machine/reset_defaults_dialog.rb` — **missing**.
+Target: `lib/drum_machine/reset_defaults_dialog.rb` — **exists**.
 
 | Widget | × | CSS | Signals | Notes |
 |---|---:|---|---|---|
@@ -365,7 +368,7 @@ Presents itself in `__init__` — the constructor is the presenter.
 
 ## 15. `src/dialogs/save_changes_dialog.py` + `src/gtk/save-changes-dialog.blp` — unsaved-changes confirmation
 
-Target: `lib/drum_machine/save_changes_dialog.rb` — **missing**.
+Target: `lib/drum_machine/save_changes_dialog.rb` — **exists**.
 
 | Widget | × | CSS | Signals | Notes |
 |---|---:|---|---|---|
@@ -376,7 +379,7 @@ Responses: `cancel` _"_Cancel"_; `discard` _"_Discard"_ **destructive**;
 
 ## 16. `src/handlers/file_dialog_handler.py` — file dialogs and pattern loading
 
-Target: `lib/drum_machine/file_dialogs.rb` — **missing**.
+Target: `lib/drum_machine/file_dialogs.rb` — **exists**.
 
 Six distinct `Gtk.FileDialog` flows, each with its own filter and title — all
 user-facing components:
@@ -397,7 +400,7 @@ export suggestion.
 
 ## 17. `src/handlers/drag_drop_handler.py` — drag and drop
 
-Target: `lib/drum_machine/drag_drop.rb` — **missing**.
+Target: `lib/drum_machine/drag_drop.rb` — **exists**.
 
 | Controller | On | CSS it toggles | Signals |
 |---|---|---|---|
@@ -418,7 +421,7 @@ allocation centre — the insertion line is pure CSS box-shadow (§20).
 
 ## 18. `src/services/ui_helper.py` — playhead and pattern-to-UI bridge
 
-Target: `lib/drum_machine/ui_helper.rb` — **missing**.
+Target: `lib/drum_machine/ui_helper.rb` — **exists**.
 
 Adds/removes `toggle-active` on a whole vertical column of toggles for the
 playing beat, deactivates every rendered toggle, pushes a loaded pattern into
@@ -429,7 +432,7 @@ real lookup table instead.
 ## 19. `src/services/drum_machine_service.py` + `save_changes_service.py` — playback and dirty state
 
 Targets: `lib/drum_machine/drum_machine_service.rb`,
-`lib/drum_machine/save_changes_service.rb` — **missing**.
+`lib/drum_machine/save_changes_service.rb` — **exists**.
 
 Not widgets, but they own `beats_per_page`, `active_pages`, `playing_beat` and
 the unsaved-changes flag that three dialogs and five actions read. The playback
@@ -439,7 +442,7 @@ loop runs on its own thread and highlights the playhead through `ui_helper`.
 ## 20. `src/style.css` + `src/style-dark.css` — stylesheets
 
 Target: `lib/drum_machine/style.rb` (two `Gtk::CssProvider`s, light + dark) —
-**missing**. Note: neither stylesheet is loaded anywhere in upstream's Python —
+**exists**. Note: neither stylesheet is loaded anywhere in upstream's Python —
 they are only listed in the GResource manifest (blocker 9).
 
 Classes defined: `adw-window` (background `#D38CFF` light / `#6b369c` dark),
@@ -528,3 +531,74 @@ in neither stylesheet** — it is read only from Python.
    divergence.
 10. **`half-view` is applied but undefined in CSS.** Not a bug to fix — just
     confirm the port's stylesheet does not need a rule for it.
+
+---
+
+## Re-survey against `lib/` (second pass)
+
+Method: `component-identification`'s `component-scan.sh` run over a `git
+archive origin/main src` export and over `lib/`, then every differing row read
+in the file.
+
+| Axis | Upstream | Port | Gap |
+|---|---:|---:|---|
+| widget rows | 75 | 72 | none real — see below |
+| distinct widget types | 41 | 39 | `Gtk.VolumeButton`, `Gtk.Widget` are type annotations only |
+| applied CSS classes | 22 | 25 | no upstream class unapplied in the port |
+| CSS classes defined in the stylesheets | 16 | 16 | all 16 present in `style.rb` |
+| signals | 23 | 23 | no upstream signal unconnected |
+| window actions | 18 + 2 parameterised + 1 app | same | names built in a loop, so the scan's `action` stream under-reports both sides |
+
+Rows that look like gaps and are not:
+
+- `Gtk.VolumeButton` — upstream `window.py:226` only names it in
+  `on_volume_changed`'s type hint; the real widget in `window.ui` is
+  `GtkScaleButton`, which the port has.
+- `Gtk.Widget`, `Gtk.MAJOR/MINOR/MICRO` — type hints and version constants, not
+  widgets. The port's equivalents are `Gtk::Version::MAJOR` etc. (there is no
+  `Gtk::VERSION`).
+- `src/handlers/drag_drop_handler.py` scans 15 widget rows to
+  `drag_drop.rb`'s 2; 13 of the 15 are parameter type hints
+  (`Gtk.Button`, `Gtk.Box`, `Gtk.Widget`). The two real widgets —
+  `Gtk.DragIcon` and its `Gtk.Label` — are both in the port.
+- `src/window.py`'s 11 widget rows are all type hints; the window's real tree
+  is `src/window.ui`'s 20 rows, which `window.rb` reproduces one for one.
+- `src/ui/drum_grid_builder.py`'s 19 rows split in the port as
+  `drum_grid.rb` (15) + `drum_part_menu.rb` (4) = 19.
+- `Gtk.Overlay` in `audio_export_dialog.rb` is an addition, standing in for the
+  blueprint's overlay child nesting.
+- `new-drum-placeholder.highlight` is defined in both stylesheets and applied
+  by nothing, upstream or port — dead on both sides (see blocker 10's
+  neighbour, `half-view`, which is the mirror case: applied, never defined).
+
+### Blockers now resolved
+
+| # | Resolution in the tree |
+|---|---|
+| 1 | `DrumMachine::` under `lib/drum_machine/` — settled, every file follows it |
+| 2 | Pure-Ruby WAV decode/mix in `audio_renderer.rb` + `audio_export_service.rb`; MIDI read/write in `pattern_service.rb`; `ffmpeg` subprocess kept in `file_encoder.rb`; playback in `sound_service.rb` |
+| 3 | `app.shortcuts` is installed and `shortcuts_dialog.rb` presents it — the recorded divergence from upstream stands |
+| 4 | Both name spellings exist: underscore actions in `window_actions.rb`'s `ACTIONS` table, hyphenated parameterised `load-pattern` / `open-file` alongside |
+| 5 | Explicit toggle registry, with `TOGGLE_NAME_SEPARATOR = "_toggle_"` kept for `go_to_instrument`'s name parsing |
+| 6 | `GLib::Timeout` / `GLib::Idle` through `drum_machine_service.rb` and `export_progress.rb` |
+| 7 | `Adwaita::ShortcutsDialog` / `ShortcutsSection` / `ShortcutsItem` all work; items take **positional** `(title, accelerator)` despite the error text advertising keywords |
+| 8 | `Gtk::ScaleButton`, `Adwaita::SplitButton` menu model, `Gdk::FileList` drop target and `notify::css-classes` on a plain `Gtk::Box` all verified by the breakpoint table in `window.rb` |
+| 9 | The port loads both stylesheets via `Style.install` — the deliberate, recorded divergence from the shipping binary |
+| 10 | No rule needed for `half-view`; it is read from Ruby only |
+
+### What remains for later steps
+
+Component coverage is complete, so the open work is not *component* work:
+
+- **test-parity** — `spec/` has only `spec_helper.rb` and a README; `test/`
+  holds three hand-run drive scripts (`drive_main_window.rb`,
+  `check_pattern_service.rb`, `gtk_driver.rb`).
+- **translation-parity** — `po/` has not been carried over at all; upstream
+  ships 28 locales plus `drum-machine.pot`, and `POTFILES.in` lists 17 files.
+- **data** — `data/` carries the 10 drumkit WAVs, the 6 `.mid` patterns, the
+  app icon, the symbolic app icon and `share-symbolic.svg` (the export
+  button's icon). Upstream's `.Devel` and `.Source` icon variants are not in
+  the fork's `data/` — cosmetic, not a component.
+- **metadata** — `.desktop.in` and `.metainfo.xml.in` are not ported.
+- **not ported, by decision** — `src/services/preset_service.py` (dead code),
+  the empty GSettings schema (no keys), and all meson/flatpak/snap plumbing.
