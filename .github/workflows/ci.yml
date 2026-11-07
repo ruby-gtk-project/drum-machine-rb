@@ -1,0 +1,21 @@
+name: CI
+
+# The app needs GTK4/Libadwaita and the ruby-gnome typelibs, none of which a
+# plain actions/setup-ruby runner has, so CI reuses the same flake.nix the
+# dev-shell banner tells a human to use — nix develop + xvfb-run, not a
+# separately maintained CI-only setup.
+on:
+  push:
+    branches: [ruby]
+  pull_request:
+
+jobs:
+  drive-and-spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+      - name: Run the headless driver scripts (test/*.rb)
+        run: nix develop --command rake drive
+      - name: Run the spec/ suite
+        run: nix develop --command xvfb-run -a rake spec_direct

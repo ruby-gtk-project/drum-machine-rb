@@ -2,6 +2,7 @@
 
 require "gtk4"
 require_relative "constants"
+require_relative "translation"
 
 module DrumMachine
   # PatternMenu — ported from the `menu pattern_menu` block in upstream's
@@ -13,7 +14,9 @@ module DrumMachine
   # item per bundled pattern. Only the filled shape is worth porting, so this
   # class builds it directly.
   class PatternMenu
-    SECTION_TITLE = "Default Patterns"
+    extend Translatable
+
+    SECTION_TITLE = _("Default Patterns")
     ACTION = "win.load-pattern"
 
     def initialize(patterns: Constants::DEFAULT_PATTERNS)

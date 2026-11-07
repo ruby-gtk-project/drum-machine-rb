@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "etc"
+require_relative "translation"
 
 module DrumMachine
   # ExportMetadata — ported from the second class in upstream's
@@ -10,8 +11,10 @@ module DrumMachine
   # art. The artist row is prefilled with the system user name, which is what
   # getpass.getuser() gives upstream.
   class ExportMetadata
+    extend Translatable
+
     COVER_LABEL_LIMIT = 20
-    CHOOSE_FILE_LABEL = "Choose File…"
+    CHOOSE_FILE_LABEL = _("Choose File…")
 
     attr_reader :cover_art_path
 

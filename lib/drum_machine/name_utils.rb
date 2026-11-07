@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
+require_relative "translation"
+
 module DrumMachine
   # NameUtils — ported from upstream's src/utils/name_utils.py.
   module NameUtils
-    FALLBACK_NAME = "Custom Sound"
+    extend Translatable
 
     # Display name for a sample file: the basename without its extension, with
     # underscores and hyphens turned into spaces and every word capitalised.
     def self.extract_name_from_path(file_path)
       File.basename(file_path.to_s, ".*").tr("_-", "  ").then do |stem|
-        titleize(stem).then { |name| name.strip.empty? ? FALLBACK_NAME : name }
+        titleize(stem).then { |name| name.strip.empty? ? _("Custom Sound") : name }
       end
     end
 

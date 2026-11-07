@@ -3,6 +3,7 @@
 require "adwaita"
 require_relative "export_metadata"
 require_relative "export_progress"
+require_relative "translation"
 
 module DrumMachine
   # AudioExportDialog — ported from upstream's
@@ -13,6 +14,8 @@ module DrumMachine
   # content, the export button is swapped for a cancel button and the status
   # box names the phase.
   class AudioExportDialog
+    include Translatable
+
     DEFAULT_FILENAME = "new_beat"
 
     def initialize(window:, audio_export_service:, drum_parts_state:, bpm:, suggested_filename: nil)
@@ -89,7 +92,7 @@ module DrumMachine
 
     def dialog
       @dialog ||= Adwaita::Dialog.new.tap do |dlg|
-        dlg.title = "Export Audio"
+        dlg.title = _("Export Audio")
         dlg.content_width = 450
       end
     end
@@ -136,7 +139,7 @@ module DrumMachine
 
     def format_row
       @format_row ||= Adwaita::ComboRow.new.tap do |row|
-        row.title = "Audio Format"
+        row.title = _("Audio Format")
         row.model = format_list
       end
     end
@@ -152,32 +155,32 @@ module DrumMachine
 
     def repeat_row
       @repeat_row ||= Adwaita::SpinRow.new(repeat_adjustment, 1, 0).tap do |row|
-        row.title = "Repeat Count"
-        row.subtitle = "How many times to repeat the pattern"
+        row.title = _("Repeat Count")
+        row.subtitle = _("How many times to repeat the pattern")
       end
     end
 
     def metadata_group
-      @metadata_group ||= Adwaita::PreferencesGroup.new.tap { |group| group.title = "Metadata" }
+      @metadata_group ||= Adwaita::PreferencesGroup.new.tap { |group| group.title = _("Metadata") }
     end
 
     def artist_row
       @artist_row ||= Adwaita::EntryRow.new.tap do |row|
-        row.title = "Artist Name"
+        row.title = _("Artist Name")
         row.show_apply_button = false
       end
     end
 
     def song_row
       @song_row ||= Adwaita::EntryRow.new.tap do |row|
-        row.title = "Song Name"
+        row.title = _("Song Name")
         row.show_apply_button = false
       end
     end
 
     def cover_row
       @cover_row ||= Adwaita::ActionRow.new.tap do |row|
-        row.title = "Cover Art"
+        row.title = _("Cover Art")
         row.activatable_widget = cover_button
       end
     end
@@ -199,14 +202,14 @@ module DrumMachine
     end
 
     def export_button
-      @export_button ||= Gtk::Button.new(label: "Export Audio").tap do |button|
+      @export_button ||= Gtk::Button.new(label: _("Export Audio")).tap do |button|
         button.add_css_class("suggested-action")
         button.add_css_class("pill")
       end
     end
 
     def cancel_button
-      @cancel_button ||= Gtk::Button.new(label: "Cancel Export").tap do |button|
+      @cancel_button ||= Gtk::Button.new(label: _("Cancel Export")).tap do |button|
         button.add_css_class("destructive-action")
         button.add_css_class("pill")
         button.visible = false
@@ -221,14 +224,14 @@ module DrumMachine
     end
 
     def status_label
-      @status_label ||= Gtk::Label.new("Exporting…").tap do |label|
+      @status_label ||= Gtk::Label.new(_("Exporting…")).tap do |label|
         label.halign = :center
         label.add_css_class("heading")
       end
     end
 
     def detail_label
-      @detail_label ||= Gtk::Label.new("Processing…").tap do |label|
+      @detail_label ||= Gtk::Label.new(_("Processing…")).tap do |label|
         label.halign = :center
         label.add_css_class("caption")
       end
@@ -296,9 +299,9 @@ module DrumMachine
 
       def silent_message(names)
         case names.length
-        when 1 then format("Part “%<first>s” is Silent", first: names.first)
-        when 2 then format("Parts “%<first>s” and “%<second>s” are Silent", first: names.first, second: names[1])
-        else format("%<count>d Parts are Silent", count: names.length)
+        when 1 then pyfmt(_("Part “{}” is Silent"), names.first)
+        when 2 then pyfmt(_("Parts “{}” and “{}” are Silent"), names.first, names[1])
+        else pyfmt(_("{} Parts are Silent"), names.length)
         end
       end
 
@@ -349,19 +352,19 @@ module DrumMachine
       def on_export_complete(success, filename)
         if success
           @window.show_toast(
-            format("Audio exported to %<name>s", name: File.basename(filename)),
+            pyfmt(_("Audio exported to {}"), File.basename(filename)),
             open_file: true,
             file_path: filename,
           )
         else
-          @window.show_toast("Export failed")
+          @window.show_toast(_("Export failed"))
         end
         dialog.close
       end
 
       def on_cancel_clicked
         export_task.cancel_export
-        @window.show_toast("Export cancelled successfully")
+        @window.show_toast(_("Export cancelled successfully"))
         dialog.close
       end
 

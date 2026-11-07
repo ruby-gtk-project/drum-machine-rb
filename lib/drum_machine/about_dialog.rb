@@ -2,6 +2,7 @@
 
 require "adwaita"
 require_relative "../drum/machine/rb/version"
+require_relative "translation"
 
 module DrumMachine
   # AboutDialog — ported from upstream's src/application.py (on_about_action).
@@ -10,12 +11,19 @@ module DrumMachine
   # is its own class so the fields, the three extra sections and the debug-info
   # string all sit in one place.
   class AboutDialog
+    include Translatable
+    extend Translatable
+
+    # Kept as a raw, untranslated literal: used in debug_info, which is
+    # diagnostic text meant to paste into an issue report in English
+    # regardless of locale. dlg.application_name= below uses `_()` directly
+    # instead, since that one is the user-facing name.
     APPLICATION_NAME = "Drum Machine"
     APPLICATION_ICON = "io.github.revisto.drum-machine"
     DEVELOPER_NAME = "Revisto"
     COPYRIGHT = "© 2024–2025 Revisto"
-    COMMENTS = "Drum Machine is a modern and intuitive application for creating, " \
-               "playing, and managing drum patterns."
+    COMMENTS = _("Drum Machine is a modern and intuitive application for creating, " \
+               "playing, and managing drum patterns.")
     ISSUE_URL = "https://github.com/Revisto/drum-machine/issues"
     WEBSITE = "https://apps.gnome.org/DrumMachine/"
     SOUNDS_LINK = "<a href='https://99sounds.org/drum-samples/'>99Sounds</a>"
@@ -28,9 +36,9 @@ module DrumMachine
 
     def build
       dialog.tap do |dlg|
-        dlg.add_acknowledgement_section("Special thanks", SPECIAL_THANKS)
+        dlg.add_acknowledgement_section(_("Special thanks"), SPECIAL_THANKS)
         dlg.add_legal_section(
-          "Sounds",
+          _("Sounds"),
           sounds_notice,
           :unknown,
           nil,
@@ -54,7 +62,7 @@ module DrumMachine
 
     def dialog
       @dialog ||= Adwaita::AboutDialog.new.tap do |dlg|
-        dlg.application_name = APPLICATION_NAME
+        dlg.application_name = _(APPLICATION_NAME)
         dlg.application_icon = APPLICATION_ICON
         dlg.developer_name = DEVELOPER_NAME
         dlg.version = @version
@@ -63,14 +71,14 @@ module DrumMachine
         dlg.comments = COMMENTS
         dlg.debug_info = debug_info
         dlg.license_type = :gpl_3_0
-        dlg.translator_credits = "translator-credits"
+        dlg.translator_credits = _("translator-credits")
         dlg.issue_url = ISSUE_URL
         dlg.website = WEBSITE
       end
     end
 
     def sounds_notice
-      format("The drum samples used in this application are from %<link>s.", link: SOUNDS_LINK)
+      pyfmt(_("The drum samples used in this application are from {link}."), link: SOUNDS_LINK)
     end
 
     # The same lines upstream builds, with the Python runtime versions replaced

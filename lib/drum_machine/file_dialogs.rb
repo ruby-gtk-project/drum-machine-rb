@@ -3,6 +3,7 @@
 require "gtk4"
 require_relative "audio_export_dialog"
 require_relative "constants"
+require_relative "translation"
 
 module DrumMachine
   # FileDialogs — ported from upstream's
@@ -16,9 +17,12 @@ module DrumMachine
   # #filename is the basename of the last pattern opened or saved, which the
   # export dialog reuses as its suggested name.
   class FileDialogs
-    MIDI_FILTER_NAME = "MIDI files"
-    AUDIO_FILTER_NAME = "Audio files"
-    IMAGE_FILTER_NAME = "Image files"
+    include Translatable
+    extend Translatable
+
+    MIDI_FILTER_NAME = _("MIDI files")
+    AUDIO_FILTER_NAME = _("Audio files")
+    IMAGE_FILTER_NAME = _("Image files")
     IMAGE_PATTERNS = ["*.png", "*.jpg", "*.jpeg"].freeze
     DEFAULT_SAVE_NAME = "new_sequence"
     MIDI_EXTENSION = ".mid"
@@ -90,7 +94,7 @@ module DrumMachine
     # --- samples ---------------------------------------------------------
 
     def handle_add_samples
-      open_audio_file_chooser("Add Audio Samples", multiple: true) do |files|
+      open_audio_file_chooser(_("Add Audio Samples"), multiple: true) do |files|
         @window.drag_drop.handle_multiple_files_drop(files, nil)
       end
     end
@@ -116,7 +120,7 @@ module DrumMachine
 
     def open_pattern_dialog
       Gtk::FileDialog.new.tap do |dialog|
-        dialog.title = "Open MIDI File"
+        dialog.title = _("Open MIDI File")
         dialog.filters = filter_store(midi_filter)
         dialog.modal = true
       end
@@ -124,7 +128,7 @@ module DrumMachine
 
     def save_pattern_dialog
       Gtk::FileDialog.new.tap do |dialog|
-        dialog.title = "Save Sequence"
+        dialog.title = _("Save Sequence")
         dialog.filters = filter_store(midi_filter)
         dialog.modal = true
         dialog.initial_name = "#{@filename || DEFAULT_SAVE_NAME}#{MIDI_EXTENSION}"
@@ -141,7 +145,7 @@ module DrumMachine
 
     def cover_art_dialog
       Gtk::FileDialog.new.tap do |dialog|
-        dialog.title = "Select Cover Art"
+        dialog.title = _("Select Cover Art")
         dialog.filters = filter_store(image_filter)
       end
     end
@@ -150,7 +154,7 @@ module DrumMachine
     # format is selected.
     def save_audio_dialog(format_info, initial_name)
       Gtk::FileDialog.new.tap do |dialog|
-        dialog.title = "Save Audio File"
+        dialog.title = _("Save Audio File")
         dialog.filters = filter_store(pattern_filter(format_info.name, [format_info.pattern]))
         dialog.initial_name = initial_name
       end
@@ -212,7 +216,7 @@ module DrumMachine
             warn "drum-machine: file dialog cancelled or failed: #{e.message}"
           rescue StandardError => e
             warn "drum-machine: failed to open pattern file: #{e.message}"
-            @window.show_toast("Failed to open file")
+            @window.show_toast(_("Failed to open file"))
           end
         end
       end
@@ -231,7 +235,7 @@ module DrumMachine
             @filename = nil
           rescue StandardError => e
             warn "drum-machine: failed to load default pattern '#{pattern_name}': #{e.message}"
-            @window.show_toast("Failed to load pattern")
+            @window.show_toast(_("Failed to load pattern"))
           end
         end
       end

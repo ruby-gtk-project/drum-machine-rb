@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "adwaita"
+require_relative "translation"
 
 module DrumMachine
   # SaveChangesDialog — ported from upstream's
@@ -9,8 +10,11 @@ module DrumMachine
   # Asked before anything that would throw the current pattern away: closing
   # the window, opening a file, picking a default pattern.
   class SaveChangesDialog
-    HEADING = "Save Changes?"
-    BODY = "Current pattern contains unsaved changes. Changes which are not saved will be permanently lost."
+    include Translatable
+    extend Translatable
+
+    HEADING = _("Save Changes?")
+    BODY = _("Current pattern contains unsaved changes. Changes which are not saved will be permanently lost.")
 
     def initialize(window:, on_save: nil, on_discard: nil)
       @window = window
@@ -30,9 +34,9 @@ module DrumMachine
 
     def dialog
       @dialog ||= Adwaita::AlertDialog.new(HEADING, BODY).tap do |dlg|
-        dlg.add_response("cancel", "_Cancel")
-        dlg.add_response("discard", "_Discard")
-        dlg.add_response("save", "_Save")
+        dlg.add_response("cancel", _("_Cancel"))
+        dlg.add_response("discard", _("_Discard"))
+        dlg.add_response("save", _("_Save"))
         dlg.set_response_appearance("discard", :destructive)
         dlg.set_response_appearance("save", :suggested)
         dlg.close_response = "cancel"

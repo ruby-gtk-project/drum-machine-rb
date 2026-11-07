@@ -1,0 +1,592 @@
+# Brazilian Portuguese translations for drum-machine package.
+# Copyright (C) 2025 drum-machine'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the drum-machine package.
+# Tiago Lucas FLach <tiagolucas9830@gmail.com>, 2025.
+# Rafael Fontenelle <rafaelff@gnome.org>, 2025.
+# Álvaro Burns <>, 2025.
+# Juliano de Souza Camargo <julianosc@pm.me>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: drum-machine\n"
+"Report-Msgid-Bugs-To: https://github.com/revisto/drum-machine/issues\n"
+"POT-Creation-Date: 2025-09-20 15:25+0000\n"
+"PO-Revision-Date: 2025-09-20 18:56-0300\n"
+"Last-Translator: Juliano de Souza Camargo <julianosc@pm.me>\n"
+"Language-Team: Brazilian Portuguese <https://br.gnome.org/traducao>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Gtranslator 49.0\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: data/io.github.revisto.drum-machine.desktop.in:2
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:6 src/window.ui:69
+msgid "Drum Machine"
+msgstr "Drum Machine"
+
+#. Translators: Search terms to find this application. Do NOT translate or localise the semicolons! The list MUST also end with a semicolon!
+#: data/io.github.revisto.drum-machine.desktop.in:9
+msgid "drum;drums;sequencer;rhythm;music;pattern;beats;percussion;loop;groove;"
+msgstr "drum;drums;sequenciador;ritmo;música;padrão;batidas;percussão;loop;groove;"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:7
+msgid "Create and play drum beats"
+msgstr "Crie e toque batidas de bateria"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:9
+msgid ""
+"Drum Machine is a modern and intuitive application for creating, playing, "
+"and managing drum patterns. Perfect for musicians, producers, and anyone "
+"interested in rhythm creation, this application provides a simple interface "
+"for drum pattern programming. Have fun!"
+msgstr ""
+"Drum Machine é um aplicativo moderno e intuitivo para criar, tocar e "
+"gerenciar padrões de bateria. Perfeito para músicos, produtores e qualquer "
+"pessoa interessada em criação de ritmos, este aplicativo fornece uma "
+"interface simples para programação de padrões de bateria. Divirta-se!"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:15
+msgid "Features:"
+msgstr "Características:"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:17
+msgid "Intuitive grid-based pattern editor"
+msgstr "Editor de padrões intuitivo baseado em grade"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:18
+msgid "Adjustable BPM control"
+msgstr "Controle de BPM ajustável"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:19
+msgid "Volume control for overall mix"
+msgstr "Controle de volume para mixagem geral"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:20
+msgid "Save and load preset patterns"
+msgstr "Salvar e carregar padrões predefinidos"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:21
+msgid "Multiple drum sounds including kick, snare, hi-hat, and more"
+msgstr "Vários sons de bateria, incluindo bumbo, caixa, chimbau e muito mais"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:22
+msgid "Audio export feature with support for WAV, FLAC, Ogg, and MP3 formats"
+msgstr ""
+"Funcionalidade de exportar áudio com suporte para os formatos WAV, FLAC, Ogg "
+"e MP3"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:23
+msgid "Metadata support for embedding artist name, song title, and cover art"
+msgstr ""
+"Suporte de metadados para embutir nome de artista, título da música, e arte "
+"da capa"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:24
+msgid "Keyboard shortcuts for quick access to all functions"
+msgstr "Atalhos de teclado para acesso rápido a todas as funções"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:33
+msgid "Drum Pattern Loaded in Light Mode"
+msgstr "Padrão de bateria carregado no modo claro"
+
+#: data/io.github.revisto.drum-machine.metainfo.xml.in:37
+msgid "Drum Pattern Loaded in Dark Mode"
+msgstr "Padrão de bateria carregado no modo escuro"
+
+#: src/application.py:69
+msgid "translator-credits"
+msgstr ""
+"Álvaro Burns\n"
+"Rafael Fontenelle <rafaelff@gnome.org>\n"
+"Tiago Lucas FLach <tiagolucas9830@gmail.com>\n"
+"Juliano de Souza Camargo <julianosc@pm.me>"
+
+#: src/config/export_formats.py:43
+msgid "MP3 files"
+msgstr "Arquivos MP3"
+
+#: src/config/export_formats.py:44
+msgid "MP3"
+msgstr "MP3"
+
+#: src/config/export_formats.py:50
+msgid "FLAC files"
+msgstr "Arquivos FLAC"
+
+#: src/config/export_formats.py:51
+msgid "FLAC (Lossless)"
+msgstr "FLAC (sem perdas)"
+
+#: src/config/export_formats.py:57
+msgid "Ogg files"
+msgstr "Arquivos Ogg"
+
+#: src/config/export_formats.py:58
+msgid "Ogg Vorbis"
+msgstr "Ogg Vorbis"
+
+#: src/config/export_formats.py:64
+msgid "WAV files"
+msgstr "Arquivos WAV"
+
+#: src/config/export_formats.py:65
+msgid "WAV (Uncompressed)"
+msgstr "WAV (sem compressão)"
+
+#: src/dialogs/audio_export_dialog.py:115
+msgid "Save Audio File"
+msgstr "Salvar arquivo de áudio"
+
+#: src/dialogs/audio_export_dialog.py:139
+msgid "Image files"
+msgstr "Arquivos de imagem"
+
+#: src/dialogs/audio_export_dialog.py:145
+msgid "Select Cover Art"
+msgstr "Selecione a arte da capa"
+
+#: src/dialogs/audio_export_dialog.py:202
+msgid "Audio exported to {}"
+msgstr "Áudio exportado para {}"
+
+#: src/dialogs/audio_export_dialog.py:207
+msgid "Export failed"
+msgstr "Falha ao exportar"
+
+#: src/dialogs/audio_export_dialog.py:214
+msgid "Export cancelled successfully"
+msgstr "Exportar cancelado com sucesso"
+
+#: src/handlers/file_dialog_handler.py:51
+msgid "Default Presets"
+msgstr "Predefinições padrão"
+
+#: src/handlers/file_dialog_handler.py:83
+msgid "No Pattern"
+msgstr "Sem padrão"
+
+#: src/handlers/file_dialog_handler.py:84
+msgid "Please create a drum pattern before exporting audio."
+msgstr "Favor criar um padrão de bateria antes de exportar o áudio."
+
+#: src/handlers/file_dialog_handler.py:86
+msgid "_OK"
+msgstr "_OK"
+
+#: src/handlers/file_dialog_handler.py:109
+#: src/handlers/file_dialog_handler.py:177
+msgid "MIDI files"
+msgstr "Arquivos MIDI"
+
+#: src/handlers/file_dialog_handler.py:115
+msgid "Open MIDI File"
+msgstr "Abrir arquivo MIDI"
+
+#: src/handlers/file_dialog_handler.py:185
+msgid "Save Sequence"
+msgstr "Salvar sequência"
+
+#: src/utils/export_progress.py:68
+msgid "Preparing..."
+msgstr "Preparando..."
+
+#: src/utils/export_progress.py:69
+msgid "Initializing..."
+msgstr "Inicializando..."
+
+#: src/utils/export_progress.py:71
+msgid "Rendering audio..."
+msgstr "Renderizando áudio..."
+
+#: src/utils/export_progress.py:72
+msgid "Processing beats..."
+msgstr "Processando batidas..."
+
+#: src/utils/export_progress.py:74
+msgid "Saving file..."
+msgstr "Guardando o arquivo..."
+
+#: src/utils/export_progress.py:75
+msgid "Writing to disk..."
+msgstr "Escrevendo no disco..."
+
+#: src/utils/export_progress.py:77
+msgid "Exporting..."
+msgstr "Exportando..."
+
+#: src/utils/export_progress.py:78
+msgid "Processing..."
+msgstr "Processando..."
+
+#. Update tooltip and accessibility with current BPM
+#: src/window.py:198
+msgid "{} Beats per Minute (BPM)"
+msgstr "{} batidas por minuto (BPM)"
+
+#. Update button tooltip to show current volume level
+#: src/window.py:207
+msgid "{:.0f}% Volume"
+msgstr "{:.0f}% volume"
+
+#: src/window.py:222 src/window.ui:170
+msgid "Play"
+msgstr "Reproduz"
+
+#: src/window.py:226
+msgid "Pause"
+msgstr "Pausa"
+
+#: src/window.py:264 src/window.ui:52
+msgid "Open"
+msgstr "Abrir"
+
+#: src/window.ui:54
+msgid "Open Preset"
+msgstr "Abrir predefinição"
+
+#: src/window.ui:57
+msgctxt "accessibility"
+msgid "Open Preset"
+msgstr "Abrir predefinição"
+
+#: src/window.ui:58
+msgid "Open Saved Drum Pattern Preset"
+msgstr "Abrir predefinição padrão de bateria salva"
+
+#: src/window.ui:76
+msgid "Main Menu"
+msgstr "Menu principal"
+
+#: src/window.ui:78
+msgctxt "accessibility"
+msgid "Main Menu"
+msgstr "Menu principal"
+
+#: src/window.ui:79
+msgid "Access Keyboard Shortcuts and Application Information"
+msgstr "Acesse atalhos de teclado e informações do aplicativo"
+
+#: src/window.ui:86 src/gtk/audio-export-dialog.blp:6
+#: src/gtk/audio-export-dialog.blp:96
+msgid "Export Audio"
+msgstr "Exportar áudio"
+
+#: src/window.ui:88
+msgctxt "accessibility"
+msgid "Export Audio"
+msgstr "Exportar áudio"
+
+#: src/window.ui:89
+msgid "Export Current Drum Pattern as Audio File"
+msgstr "Exporta o atual padrão de bateria como um arquivo de áudio"
+
+#: src/window.ui:134
+msgid "BPM"
+msgstr "BPM"
+
+#: src/window.ui:139 src/window.ui:143
+msgid "Adjust Tempo In Beats per Minute (BPM)"
+msgstr "Ajusta o tempo em batidas por minuto (BPM)"
+
+#: src/window.ui:142
+msgid "Tempo"
+msgstr "Tempo"
+
+#: src/window.ui:184
+msgid "Adjust Volume"
+msgstr "Ajusta o volume"
+
+#: src/window.ui:207
+msgid "Reset"
+msgstr "Reiniciar"
+
+#: src/window.ui:208
+msgid "Reset the Drum Sequence"
+msgstr "Reinicia a sequência de bateria"
+
+#: src/window.ui:223
+msgid "_Save Pattern"
+msgstr "_Salvar padrão"
+
+#: src/window.ui:229
+msgid "_Keyboard Shortcuts"
+msgstr "Atalhos de _teclado"
+
+#: src/window.ui:233
+msgid "_About Drum Machine"
+msgstr "_Sobre o Drum Machine"
+
+#: src/gtk/help-overlay.blp:11
+msgctxt "shortcut window"
+msgid "General"
+msgstr "Geral"
+
+#: src/gtk/help-overlay.blp:14
+msgctxt "shortcut window"
+msgid "Show Shortcuts"
+msgstr "Mostra os atalhos"
+
+#: src/gtk/help-overlay.blp:19
+msgctxt "shortcut window"
+msgid "Quit"
+msgstr "Sai"
+
+#: src/gtk/help-overlay.blp:26
+msgctxt "shortcut window"
+msgid "Playback Controls"
+msgstr "Controles de reprodução"
+
+#: src/gtk/help-overlay.blp:29
+msgctxt "shortcut window"
+msgid "Play/Pause"
+msgstr "Reproduzir/Pausar"
+
+#: src/gtk/help-overlay.blp:35
+msgctxt "shortcut window"
+msgid "Clear All"
+msgstr "Limpa tudo"
+
+#: src/gtk/help-overlay.blp:42
+msgctxt "shortcut window"
+msgid "BPM & Volume Controls"
+msgstr "Controles de BPM e volume"
+
+#: src/gtk/help-overlay.blp:45
+msgctxt "shortcut window"
+msgid "Increase BPM"
+msgstr "Aumenta o BPM"
+
+#: src/gtk/help-overlay.blp:51
+msgctxt "shortcut window"
+msgid "Decrease BPM"
+msgstr "Diminui o BPM"
+
+#: src/gtk/help-overlay.blp:57
+msgctxt "shortcut window"
+msgid "Increase Volume"
+msgstr "Aumenta o volume"
+
+#: src/gtk/help-overlay.blp:63
+msgctxt "shortcut window"
+msgid "Decrease Volume"
+msgstr "Diminui o volume"
+
+#: src/gtk/help-overlay.blp:69
+msgctxt "shortcut window"
+msgid "Mute"
+msgstr "Mudo"
+
+#: src/gtk/help-overlay.blp:76
+msgctxt "shortcut window"
+msgid "Preset Management"
+msgstr "Gerenciamento de predefinições"
+
+#: src/gtk/help-overlay.blp:79
+msgctxt "shortcut window"
+msgid "Load Preset"
+msgstr "Carrega a predefinição"
+
+#: src/gtk/help-overlay.blp:85
+msgctxt "shortcut window"
+msgid "Save Preset"
+msgstr "Salva a predefinição"
+
+#: src/gtk/help-overlay.blp:91
+msgctxt "shortcut window"
+msgid "Export Audio"
+msgstr "Exporta áudio"
+
+#: src/gtk/help-overlay.blp:98
+msgctxt "shortcut window"
+msgid "Navigation"
+msgstr "Navegação"
+
+#: src/gtk/help-overlay.blp:101
+msgctxt "shortcut window"
+msgid "Go to Instrument"
+msgstr "Vai para o instrumento"
+
+#: src/gtk/help-overlay.blp:107
+msgctxt "shortcut window"
+msgid "Previous Page"
+msgstr "Página anterior"
+
+#: src/gtk/help-overlay.blp:113
+msgctxt "shortcut window"
+msgid "Next Page"
+msgstr "Próxima página"
+
+#: src/gtk/save-changes-dialog.blp:5
+msgid "Save Changes?"
+msgstr "Salvar alterações?"
+
+#: src/gtk/save-changes-dialog.blp:6
+msgid ""
+"Current preset contains unsaved changes. Changes which are not saved will be "
+"permanently lost."
+msgstr ""
+"A predefinição atual contém alterações não salvas. As alterações que não "
+"forem salvas serão perdidas permanentemente."
+
+#. Translators: Cancel the operation
+#: src/gtk/save-changes-dialog.blp:14
+msgid "_Cancel"
+msgstr "_Cancelar"
+
+#. Translators: Discard all changes
+#: src/gtk/save-changes-dialog.blp:15
+msgid "_Discard"
+msgstr "_Descartar"
+
+#. Translators: Save current changes
+#: src/gtk/save-changes-dialog.blp:16
+msgid "_Save"
+msgstr "_Salvar"
+
+#: src/gtk/audio-export-dialog.blp:39
+msgid "Audio Format"
+msgstr "Formato de áudio"
+
+#: src/gtk/audio-export-dialog.blp:45
+msgid "Repeat Count"
+msgstr "Contagem de repetições"
+
+#: src/gtk/audio-export-dialog.blp:46
+msgid "How many times to repeat the pattern"
+msgstr "Quantas vezes para se repetir o padrão"
+
+#: src/gtk/audio-export-dialog.blp:59
+msgid "Metadata"
+msgstr "Metadados"
+
+#: src/gtk/audio-export-dialog.blp:62
+msgid "Artist Name"
+msgstr "Nome do artista"
+
+#: src/gtk/audio-export-dialog.blp:67
+msgid "Song Name"
+msgstr "Nome da música"
+
+#: src/gtk/audio-export-dialog.blp:72
+msgid "Cover Art"
+msgstr "Arte da capa"
+
+#: src/gtk/audio-export-dialog.blp:76
+msgid "Choose File"
+msgstr "Escolher arquivo"
+
+#: src/gtk/audio-export-dialog.blp:105
+msgid "Cancel Export"
+msgstr "Cancelar exportação"
+
+#~ msgid "Export Settings"
+#~ msgstr "Exportar configurações"
+
+#~ msgid "Configure your audio export options"
+#~ msgstr "Configure as opções de exportação de áudio"
+
+#~ msgid "Select the output audio format"
+#~ msgstr "Selecionar o formato de áudio da saída"
+
+#~ msgid "Add metadata to your exported audio"
+#~ msgstr "Adicionar metadados no seu áudio exportado"
+
+#~ msgid "Select an image file for the cover art"
+#~ msgstr "Selecionar um arquivo de imagem para a arte da capa"
+
+#~ msgctxt "accessibility"
+#~ msgid "Save Drum Pattern"
+#~ msgstr "Salvar padrão de bateria"
+
+#~ msgid "drum"
+#~ msgstr "bateria"
+
+#~ msgid "machine"
+#~ msgstr "máquina"
+
+#~ msgid "rhythm"
+#~ msgstr "ritmo"
+
+#~ msgid "music"
+#~ msgstr "música"
+
+#~ msgid "beats"
+#~ msgstr "batidas"
+
+#~ msgid "Revisto"
+#~ msgstr "Revisão"
+
+#~ msgid ""
+#~ "This release of Drum Machine 1.3.1 brings significant UI and "
+#~ "functionality improvements:"
+#~ msgstr ""
+#~ "Esta versão do Drum Machine 1.3.1 traz melhorias significativas na "
+#~ "interface do usuário e na funcionalidade:"
+
+#~ msgid ""
+#~ "Refactored headerbar and background styling for a flat, integrated visual "
+#~ "experience."
+#~ msgstr ""
+#~ "Barra de cabeçalho e estilo de fundo reformulados para uma experiência "
+#~ "visual plana e integrada."
+
+#~ msgid ""
+#~ "Enhanced accessibility with improved tooltips and descriptive labels for "
+#~ "BPM and volume controls."
+#~ msgstr ""
+#~ "Acessibilidade aprimorada com dicas de ferramentas aprimoradas e rótulos "
+#~ "descritivos para controles de BPM e volume."
+
+#~ msgid ""
+#~ "Redesigned app icon and updated text styling for clearer user interface "
+#~ "elements."
+#~ msgstr ""
+#~ "Ícone do aplicativo redesenhado e estilo de texto atualizado para "
+#~ "elementos de interface de usuário mais claros."
+
+#~ msgid ""
+#~ "Optimized layout breakpoints to improve responsiveness and reduce early "
+#~ "scrolling."
+#~ msgstr ""
+#~ "Pontos de interrupção de layout otimizados para melhorar a capacidade de "
+#~ "resposta e reduzir a rolagem inicial."
+
+#~ msgid ""
+#~ "Fixed padding, border-radius, and vertical alignment issues across "
+#~ "multiple controls."
+#~ msgstr ""
+#~ "Problemas corrigidos de preenchimento, raio de borda e alinhamento "
+#~ "vertical em vários controles."
+
+#~ msgid ""
+#~ "Updated file dialogs to use the Nautilus file chooser for a more modern "
+#~ "approach."
+#~ msgstr ""
+#~ "Caixas de diálogo de arquivo atualizadas para usar o seletor de arquivos "
+#~ "Nautilus para uma abordagem mais moderna."
+
+#~ msgid ""
+#~ "Improved keyboard navigation focus and updated tooltips, including "
+#~ "dedicated play and pause hints."
+#~ msgstr ""
+#~ "Foco de navegação do teclado aprimorado e dicas de ferramentas "
+#~ "atualizadas, incluindo dicas dedicadas de reprodução e pausa."
+
+#~ msgid ""
+#~ "Transitioned to the Nautilus file chooser for a more contemporary "
+#~ "interface."
+#~ msgstr ""
+#~ "Transição para o seletor de arquivos Nautilus para uma interface mais "
+#~ "contemporânea."
+
+#~ msgid "Now accessible on narrow mobile screens with adaptive UI elements."
+#~ msgstr ""
+#~ "Agora acessível em telas estreitas de dispositivos móveis com elementos "
+#~ "de interface de usuário adaptáveis."
+
+#~ msgid "Refined app icon, and adjusted brand colors for better contrast."
+#~ msgstr ""
+#~ "Ícone do aplicativo refinado e cores da marca ajustadas para melhor "
+#~ "contraste."

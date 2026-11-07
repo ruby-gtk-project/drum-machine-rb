@@ -170,3 +170,73 @@ rescue LoadError
     warn("NOTE: stone_checksums isn't installed, or is disabled for #{RUBY_VERSION} in the current environment")
   end
 end
+
+# kettle-jem:freeze
+### DRUM-MACHINE-RB TASKS
+
+# Compiles locale/<lang>/LC_MESSAGES/drum-machine.mo from po/<lang>.po, which
+# lib/drum_machine/translation.rb's bindtextdomain reads at runtime.
+#
+# GetText::Tools::Task (the gem's usual Rake wiring) is not used here: it
+# hard-codes a po/<locale>/<domain>.po *directory* layout, but po/ was copied
+# straight from upstream's Meson-era tree, which is po/<locale>.po — a flat
+# file per language, no subdirectory. Renaming the donated .po files to fit
+# the gem's layout is not an option (po/ is copied unchanged, see
+# .claude/skills/translation-parity), so this task drives GetText::Tools::
+# MsgFmt directly over the layout that already exists, instead of asking the
+# gem's Task to assume one it does not have.
+begin
+  require "fileutils"
+  require "gettext/tools/msgfmt"
+
+  desc "Compile po/*.po into locale/*/LC_MESSAGES/drum-machine.mo"
+  task "gettext:mo:update" do
+    po_dir = File.join(__dir__, "po")
+    locales = File.readlines(File.join(po_dir, "LINGUAS")).join(" ").split
+    locales.each do |locale|
+      po_file = File.join(po_dir, "#{locale}.po")
+      next unless File.exist?(po_file)
+
+      mo_dir = File.join(__dir__, "locale", locale, "LC_MESSAGES")
+      FileUtils.mkdir_p(mo_dir)
+      GetText::Tools::MsgFmt.run(po_file, "-o", File.join(mo_dir, "drum-machine.mo"))
+    end
+  end
+rescue LoadError
+  desc("(stub) gettext:mo:update is unavailable")
+  task("gettext:mo:update") do
+    warn("NOTE: the gettext gem isn't installed, or is disabled for #{RUBY_VERSION} in the current environment")
+  end
+end
+#
+# `rake spec` resolves to kettle-dev's task, which needs the root Gemfile's
+# full dev bundle (kettle-dev, kettle-family, ...) installed — and that
+# Gemfile pins kettle-family >= 1.0.0 to Ruby >= 4.0, which this fork's own
+# Ruby (3.4.9, from flake.nix) can never satisfy. `kettle/test/rspec` itself
+# has no such constraint (see nix/test/, a second bundle built just for it),
+# so the suite runs the same way the dev-shell banner already recommends:
+# `require "rspec/core"` before `--require spec_helper`, so RSpec::Core's own
+# constants exist before spec_helper's `require "kettle/test/rspec"` reopens
+# them.
+desc "Run the spec/ suite directly (bypasses the Ruby >= 4.0-only kettle-dev rake:spec)"
+task "spec_direct" do
+  require "rspec/core"
+  exit_code = RSpec::Core::Runner.run(["--format", "progress", "--require", "spec_helper", "spec"])
+  exit(exit_code) unless exit_code.zero?
+end
+
+# The two hand-written driver scripts under test/ are the suite that actually
+# exercises the running app (see test/README via the ruby-gtk-testing skill);
+# they need a display, which is why they are run under xvfb-run rather than
+# plain ruby. Wiring them into rake is what lets CI (or anyone who does not
+# already know the dev-shell banner by heart) run them with one command.
+desc "Run the headless UI/engine driver scripts under test/ (needs the nix devshell, for xvfb-run and GTK)"
+task "drive" do
+  Dir.glob(File.join(__dir__, "test", "*.rb")).sort.each do |script|
+    next if File.basename(script) == "gtk_driver.rb" # the harness the other two are built on, not a test itself
+
+    puts "--- #{File.basename(script)} ---"
+    system("xvfb-run", "-a", "ruby", script, exception: true)
+  end
+end
+# kettle-jem:unfreeze

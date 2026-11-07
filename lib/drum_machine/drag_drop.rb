@@ -3,6 +3,7 @@
 require "gtk4"
 require_relative "constants"
 require_relative "name_utils"
+require_relative "translation"
 
 module DrumMachine
   # DragDrop — ported from upstream's src/handlers/drag_drop_handler.py.
@@ -12,6 +13,8 @@ module DrumMachine
   # this sample), a drag source on each instrument button and a string drop
   # target on the column (reorder), whose insertion line is pure CSS.
   class DragDrop
+    include Translatable
+
     MAX_FILE_SIZE_MB = 50
     BYTES_PER_MB = 1024 * 1024
 
@@ -78,10 +81,10 @@ module DrumMachine
       else
         @window.replace_drum_part(drum_id, file_path, NameUtils.extract_name_from_path(file_path)).then do |result|
           if result
-            @window.show_toast("Sound replaced")
+            @window.show_toast(_("Sound replaced"))
             @window.save_changes_service.mark_unsaved_changes(true)
           else
-            @window.show_toast("Failed to replace sound")
+            @window.show_toast(_("Failed to replace sound"))
           end
           result
         end
@@ -96,7 +99,7 @@ module DrumMachine
       else
         partition_files(files).then do |valid_files, skipped_count|
           if valid_files.empty?
-            @window.show_toast("No valid audio files found")
+            @window.show_toast(_("No valid audio files found"))
             false
           else
             handle_files(valid_files, skipped_count, drum_id_to_replace)
@@ -266,17 +269,17 @@ module DrumMachine
           true
         else
           warn "drum-machine: unsupported file format: #{File.extname(path)} for #{File.basename(path)}"
-          @window.show_toast("Not a supported audio file")
+          @window.show_toast(_("Not a supported audio file"))
           false
         end
       end
 
       def validate_file_access(path)
         if !File.exist?(path)
-          @window.show_toast("File not found")
+          @window.show_toast(_("File not found"))
           false
         elsif !File.file?(path)
-          @window.show_toast("Selected item is not a file")
+          @window.show_toast(_("Selected item is not a file"))
           false
         else
           validate_file_size(path)
@@ -286,7 +289,7 @@ module DrumMachine
       def validate_file_size(path)
         (File.size(path) / BYTES_PER_MB.to_f).then do |size_mb|
           if size_mb > MAX_FILE_SIZE_MB
-            @window.show_toast(format("File too large: %<size>.1fMB (max %<max>dMB)", size: size_mb, max: MAX_FILE_SIZE_MB))
+            @window.show_toast(pyfmt(_("File too large: {:.1f}MB (max 50MB)"), size_mb))
             false
           else
             true
@@ -334,7 +337,7 @@ module DrumMachine
         end
       rescue StandardError => e
         @skipped_count += 1
-        @window.show_toast(format("Error processing file: %<error>s", error: e.message))
+        @window.show_toast(pyfmt(_("Error processing file: {}"), e.message))
       end
 
       def replace_first_file(drum_id, path, name)
@@ -362,7 +365,7 @@ module DrumMachine
           elsif count.positive?
             @window.show_toast(addition_summary(count))
           elsif @skipped_count.positive? && !@replacement_done
-            @window.show_toast(format("%<count>d files skipped", count: @skipped_count))
+            @window.show_toast(pyfmt(_("{} files skipped"), @skipped_count))
           end
         end
       end
@@ -377,11 +380,11 @@ module DrumMachine
 
       def addition_summary(count)
         if @skipped_count.positive? && count == 1
-          format("Added %<count>d drum part, %<skipped>d files skipped", count: count, skipped: @skipped_count)
+          pyfmt(_("Added {} drum part, {} files skipped"), count, @skipped_count)
         elsif @skipped_count.positive?
-          format("Added %<count>d drum parts, %<skipped>d files skipped", count: count, skipped: @skipped_count)
+          pyfmt(_("Added {} drum parts, {} files skipped"), count, @skipped_count)
         else
-          format("Added %<count>d drum parts", count: count)
+          pyfmt(_("Added {} drum parts"), count)
         end
       end
   end

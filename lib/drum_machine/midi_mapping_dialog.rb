@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "adwaita"
+require_relative "translation"
 
 module DrumMachine
   # MidiMappingDialog — ported from upstream's
@@ -11,60 +12,63 @@ module DrumMachine
   # other: picking a General MIDI instrument sets the note, and typing a note
   # that is in the GM map selects the instrument.
   class MidiMappingDialog
+    include Translatable
+    extend Translatable
+
     # Common GM Percussion Map (General MIDI Level 1).
     GM_PERCUSSION_MAP = {
-      35 => "Acoustic Bass Drum",
-      36 => "Bass Drum 1",
-      37 => "Side Stick",
-      38 => "Acoustic Snare",
-      39 => "Hand Clap",
-      40 => "Electric Snare",
-      41 => "Low Floor Tom",
-      42 => "Closed Hi Hat",
-      43 => "High Floor Tom",
-      44 => "Pedal Hi Hat",
-      45 => "Low Tom",
-      46 => "Open Hi Hat",
-      47 => "Low-Mid Tom",
-      48 => "Hi-Mid Tom",
-      49 => "Crash Cymbal 1",
-      50 => "High Tom",
-      51 => "Ride Cymbal 1",
-      52 => "Chinese Cymbal",
-      53 => "Ride Bell",
-      54 => "Tambourine",
-      55 => "Splash Cymbal",
-      56 => "Cowbell",
-      57 => "Crash Cymbal 2",
-      58 => "Vibraslap",
-      59 => "Ride Cymbal 2",
-      60 => "Hi Bongo",
-      61 => "Low Bongo",
-      62 => "Mute Hi Conga",
-      63 => "Open Hi Conga",
-      64 => "Low Conga",
-      65 => "High Timbale",
-      66 => "Low Timbale",
-      67 => "High Agogo",
-      68 => "Low Agogo",
-      69 => "Cabasa",
-      70 => "Maracas",
-      71 => "Short Whistle",
-      72 => "Long Whistle",
-      73 => "Short Guiro",
-      74 => "Long Guiro",
-      75 => "Claves",
-      76 => "Hi Wood Block",
-      77 => "Low Wood Block",
-      78 => "Mute Cuica",
-      79 => "Open Cuica",
-      80 => "Mute Triangle",
-      81 => "Open Triangle",
+      35 => _("Acoustic Bass Drum"),
+      36 => _("Bass Drum 1"),
+      37 => _("Side Stick"),
+      38 => _("Acoustic Snare"),
+      39 => _("Hand Clap"),
+      40 => _("Electric Snare"),
+      41 => _("Low Floor Tom"),
+      42 => _("Closed Hi Hat"),
+      43 => _("High Floor Tom"),
+      44 => _("Pedal Hi Hat"),
+      45 => _("Low Tom"),
+      46 => _("Open Hi Hat"),
+      47 => _("Low-Mid Tom"),
+      48 => _("Hi-Mid Tom"),
+      49 => _("Crash Cymbal 1"),
+      50 => _("High Tom"),
+      51 => _("Ride Cymbal 1"),
+      52 => _("Chinese Cymbal"),
+      53 => _("Ride Bell"),
+      54 => _("Tambourine"),
+      55 => _("Splash Cymbal"),
+      56 => _("Cowbell"),
+      57 => _("Crash Cymbal 2"),
+      58 => _("Vibraslap"),
+      59 => _("Ride Cymbal 2"),
+      60 => _("Hi Bongo"),
+      61 => _("Low Bongo"),
+      62 => _("Mute Hi Conga"),
+      63 => _("Open Hi Conga"),
+      64 => _("Low Conga"),
+      65 => _("High Timbale"),
+      66 => _("Low Timbale"),
+      67 => _("High Agogo"),
+      68 => _("Low Agogo"),
+      69 => _("Cabasa"),
+      70 => _("Maracas"),
+      71 => _("Short Whistle"),
+      72 => _("Long Whistle"),
+      73 => _("Short Guiro"),
+      74 => _("Long Guiro"),
+      75 => _("Claves"),
+      76 => _("Hi Wood Block"),
+      77 => _("Low Wood Block"),
+      78 => _("Mute Cuica"),
+      79 => _("Open Cuica"),
+      80 => _("Mute Triangle"),
+      81 => _("Open Triangle"),
     }.freeze
 
     NOTES = GM_PERCUSSION_MAP.keys.sort.freeze
     DEFAULT_NOTE = 36
-    CUSTOM_NOTE_SUBTITLE = "Custom Note"
+    CUSTOM_NOTE_SUBTITLE = _("Custom Note")
 
     def initialize(parent, drum_part, on_save)
       @parent = parent
@@ -116,7 +120,7 @@ module DrumMachine
 
     def dialog
       @dialog ||= Adwaita::Dialog.new.tap do |dlg|
-        dlg.title = "MIDI Mapping"
+        dlg.title = _("MIDI Mapping")
         dlg.content_width = 450
       end
     end
@@ -145,18 +149,18 @@ module DrumMachine
 
     def note_group
       @note_group ||= Adwaita::PreferencesGroup.new.tap do |group|
-        group.title = "Note Assignment"
-        group.description = format(
-          "Assign a MIDI note for '%<name>s'. This ensures correct playback when exporting.",
-          name: @drum_part.name,
+        group.title = _("Note Assignment")
+        group.description = pyfmt(
+          _("Assign a MIDI note for '{}'. This ensures correct playback when exporting."),
+          @drum_part.name,
         )
       end
     end
 
     def note_row
       @note_row ||= Adwaita::ActionRow.new.tap do |row|
-        row.title = "MIDI Note"
-        row.subtitle = "The note number to trigger"
+        row.title = _("MIDI Note")
+        row.subtitle = _("The note number to trigger")
       end
     end
 
@@ -177,13 +181,13 @@ module DrumMachine
 
     def preset_group
       @preset_group ||= Adwaita::PreferencesGroup.new.tap do |group|
-        group.title = "Standard Instruments"
-        group.description = "Select a General MIDI instrument to automatically set the note."
+        group.title = _("Standard Instruments")
+        group.description = _("Select a General MIDI instrument to automatically set the note.")
       end
     end
 
     def preset_row
-      @preset_row ||= Adwaita::ActionRow.new.tap { |row| row.title = "Instrument Preset" }
+      @preset_row ||= Adwaita::ActionRow.new.tap { |row| row.title = _("Instrument Preset") }
     end
 
     def preset_model
@@ -206,7 +210,7 @@ module DrumMachine
     end
 
     def save_button
-      @save_button ||= Gtk::Button.new(label: "Save").tap do |button|
+      @save_button ||= Gtk::Button.new(label: _("Save")).tap do |button|
         button.add_css_class("pill")
         button.add_css_class("suggested-action")
       end

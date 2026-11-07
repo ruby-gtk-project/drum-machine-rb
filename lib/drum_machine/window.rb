@@ -11,6 +11,7 @@ require_relative "pattern_menu"
 require_relative "primary_menu"
 require_relative "save_changes_service"
 require_relative "sound_service"
+require_relative "translation"
 require_relative "ui_helper"
 require_relative "window_actions"
 
@@ -28,6 +29,8 @@ module DrumMachine
   # — which is also what the house style asks for: memoized widgets, all
   # configuration in their taps, assembly only in #build.
   class Window
+    include Translatable
+
     DEFAULT_WIDTH = 1000
     DEFAULT_HEIGHT = 800
     MIN_WIDTH = 360
@@ -110,27 +113,27 @@ module DrumMachine
 
     # Positional, not keyword, arguments — the title and subtitle are required
     # even though the error a no-argument new raises advertises them as names.
-    def window_title = @window_title ||= Adwaita::WindowTitle.new("Drum Machine", "")
+    def window_title = @window_title ||= Adwaita::WindowTitle.new(_("Drum Machine"), "")
 
     def file_pattern_button
       @file_pattern_button ||= Adwaita::SplitButton.new.tap do |button|
-        button.label = "Open…"
+        button.label = _("Open…")
         button.use_underline = true
-        button.tooltip_text = "Open Pattern"
+        button.tooltip_text = _("Open Pattern")
       end
     end
 
     def menu_button
       @menu_button ||= Gtk::MenuButton.new.tap do |button|
         button.icon_name = "open-menu-symbolic"
-        button.tooltip_text = "Main Menu"
+        button.tooltip_text = _("Main Menu")
       end
     end
 
     def export_audio_button
       @export_audio_button ||= Gtk::Button.new.tap do |button|
         button.icon_name = "share-symbolic"
-        button.tooltip_text = "Export Audio…"
+        button.tooltip_text = _("Export Audio…")
         button.add_css_class("export-button")
       end
     end
@@ -172,7 +175,7 @@ module DrumMachine
     end
 
     def bpm_label
-      @bpm_label ||= Gtk::Label.new("BPM").tap { |label| label.valign = :center }
+      @bpm_label ||= Gtk::Label.new(_("BPM")).tap { |label| label.valign = :center }
     end
 
     def bpm_adjustment
@@ -188,7 +191,7 @@ module DrumMachine
 
     def bpm_spin_button
       @bpm_spin_button ||= Gtk::SpinButton.new(bpm_adjustment, 1, 0).tap do |button|
-        button.tooltip_text = "Adjust Tempo In Beats per Minute (BPM)"
+        button.tooltip_text = _("Adjust Tempo In Beats per Minute (BPM)")
         button.valign = :center
       end
     end
@@ -206,7 +209,7 @@ module DrumMachine
         button.width_request = PLAY_BUTTON_SIZE
         button.height_request = PLAY_BUTTON_SIZE
         button.icon_name = "media-playback-start-symbolic"
-        button.tooltip_text = "Play"
+        button.tooltip_text = _("Play")
         button.valign = :center
         button.add_css_class("circular")
       end
@@ -227,7 +230,7 @@ module DrumMachine
       @volume_button ||= Gtk::ScaleButton.new.tap do |button|
         button.valign = :center
         button.icons = VOLUME_ICONS
-        button.tooltip_text = "Adjust Volume"
+        button.tooltip_text = _("Adjust Volume")
         button.adjustment = volume_adjustment
       end
     end
@@ -241,9 +244,9 @@ module DrumMachine
     end
 
     def clear_button
-      @clear_button ||= Gtk::Button.new(label: "Clear").tap do |button|
+      @clear_button ||= Gtk::Button.new(label: _("Clear")).tap do |button|
         button.valign = :center
-        button.tooltip_text = "Clear the Drum Pattern"
+        button.tooltip_text = _("Clear the Drum Pattern")
       end
     end
 
@@ -307,14 +310,14 @@ module DrumMachine
     def on_bpm_changed
       bpm_spin_button.value.then do |value|
         drum_machine_service.set_bpm(value)
-        bpm_spin_button.tooltip_text = format("%<bpm>d Beats per Minute (BPM)", bpm: value.to_i)
+        bpm_spin_button.tooltip_text = pyfmt(_("{} Beats per Minute (BPM)"), value.to_i)
         save_changes_service.mark_unsaved_changes(true)
       end
     end
 
     def on_volume_changed(value)
       drum_machine_service.set_volume(value)
-      volume_button.tooltip_text = format("%<volume>d%% Volume", volume: value.round)
+      volume_button.tooltip_text = pyfmt(_("{:.0f}% Volume"), value)
     end
 
     def handle_clear
@@ -347,11 +350,11 @@ module DrumMachine
     def handle_play_pause
       if drum_machine_service.playing?
         play_pause_button.icon_name = "media-playback-start-symbolic"
-        play_pause_button.tooltip_text = "Play"
+        play_pause_button.tooltip_text = _("Play")
         drum_machine_service.stop
       else
         play_pause_button.icon_name = "media-playback-pause-symbolic"
-        play_pause_button.tooltip_text = "Pause"
+        play_pause_button.tooltip_text = _("Pause")
         drum_machine_service.play
       end
     end
@@ -399,14 +402,14 @@ module DrumMachine
         if open_file && file_path
           toast.action_name = "win.open-file"
           toast.set_action_target_value(GLib::Variant.new(file_path))
-          toast.button_label = "Open"
+          toast.button_label = _("Open")
         end
 
         toast_overlay.add_toast(toast)
       end
     end
 
-    def show_added_toast(name) = show_toast(format("Added: %<name>s", name: name))
+    def show_added_toast(name) = show_toast(pyfmt(_("Added: {}"), name))
 
     def add_new_drum_part(file_path, name, show_success_toast: true)
       drum_machine_service.add_new_drum_part(file_path, name).then do |result|
@@ -416,7 +419,7 @@ module DrumMachine
           end
           save_changes_service.mark_unsaved_changes(true)
         else
-          show_toast("Failed to add custom sound")
+          show_toast(_("Failed to add custom sound"))
         end
         !result.nil?
       end
@@ -425,11 +428,11 @@ module DrumMachine
     def replace_drum_part(drum_id, file_path, name)
       drum_machine_service.replace_drum_part(drum_id, file_path, name).then do |result|
         if result
-          show_toast(format("Replaced drum with: %<name>s", name: name))
+          show_toast(pyfmt(_("Replaced drum with: {}"), name))
           drum_grid.update_drum_button(drum_id)
           save_changes_service.mark_unsaved_changes(true)
         else
-          show_toast("Failed to replace drum sound")
+          show_toast(_("Failed to replace drum sound"))
         end
         !result.nil?
       end

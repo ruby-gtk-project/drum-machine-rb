@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "adwaita"
+require_relative "translation"
 
 module DrumMachine
   # ResetDefaultsDialog — ported from upstream's
@@ -9,8 +10,11 @@ module DrumMachine
   # Confirms the win.reset_to_defaults action, which clears the pattern and
   # puts the samples, tempo and volume back where they started.
   class ResetDefaultsDialog
-    HEADING = "Reset to Defaults?"
-    BODY = "This will clear the current pattern and restore all samples, BPM, and volume to their default values. This action cannot be undone."
+    include Translatable
+    extend Translatable
+
+    HEADING = _("Reset to Defaults?")
+    BODY = _("This will clear the current pattern and restore all samples, BPM, and volume to their default values. This action cannot be undone.")
 
     def initialize(window:, on_reset: nil)
       @window = window
@@ -28,8 +32,8 @@ module DrumMachine
 
     def dialog
       @dialog ||= Adwaita::AlertDialog.new(HEADING, BODY).tap do |dlg|
-        dlg.add_response("cancel", "_Cancel")
-        dlg.add_response("reset", "_Reset")
+        dlg.add_response("cancel", _("_Cancel"))
+        dlg.add_response("reset", _("_Reset"))
         dlg.set_response_appearance("reset", :destructive)
         dlg.close_response = "cancel"
         dlg.default_response = "cancel"

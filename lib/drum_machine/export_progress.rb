@@ -2,6 +2,7 @@
 
 require "adwaita"
 require_relative "constants"
+require_relative "translation"
 
 module DrumMachine
   # ExportPhase / ExportProgressHandler / ExportTask — ported from upstream's
@@ -17,15 +18,17 @@ module DrumMachine
 
   # Handles export progress updates and UI thread coordination.
   class ExportProgressHandler
+    extend Translatable
+
     # One [status, detail] pair per phase, with the fallback upstream falls
     # back to for anything it does not recognise.
     PHASE_LABELS = {
-      ExportPhase::PREPARING => ["Preparing…", "Initializing…"],
-      ExportPhase::RENDERING => ["Rendering audio…", "Processing beats…"],
-      ExportPhase::SAVING    => ["Saving file…", "Writing to disk…"],
+      ExportPhase::PREPARING => [_("Preparing…"), _("Initializing…")],
+      ExportPhase::RENDERING => [_("Rendering audio…"), _("Processing beats…")],
+      ExportPhase::SAVING    => [_("Saving file…"), _("Writing to disk…")],
     }.freeze
 
-    FALLBACK_LABELS = ["Exporting…", "Processing…"].freeze
+    FALLBACK_LABELS = [_("Exporting…"), _("Processing…")].freeze
 
     def initialize(progress_bar, status_overlay, status_label, detail_label)
       @progress_bar = progress_bar

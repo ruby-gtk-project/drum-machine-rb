@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "translation"
+
 module DrumMachine
   # ExportFormat / ExportFormatRegistry — ported from upstream's
   # src/config/export_formats.py.
@@ -18,33 +20,35 @@ module DrumMachine
 
   # Registry for managing available export formats.
   class ExportFormatRegistry
+    extend Translatable
+
     FORMATS = {
       0 => ExportFormat.new(
         ext:               ".mp3",
         pattern:           "*.mp3",
-        name:              "MP3 files",
-        display:           "MP3",
+        name:              _("MP3 files"),
+        display:           _("MP3"),
         supports_metadata: true,
       ),
       1 => ExportFormat.new(
         ext:               ".flac",
         pattern:           "*.flac",
-        name:              "FLAC files",
-        display:           "FLAC (Lossless)",
+        name:              _("FLAC files"),
+        display:           _("FLAC (Lossless)"),
         supports_metadata: true,
       ),
       2 => ExportFormat.new(
         ext:               ".ogg",
         pattern:           "*.ogg",
-        name:              "Ogg files",
-        display:           "Ogg Vorbis",
+        name:              _("Ogg files"),
+        display:           _("Ogg Vorbis"),
         supports_metadata: true,
       ),
       3 => ExportFormat.new(
         ext:               ".wav",
         pattern:           "*.wav",
-        name:              "WAV files",
-        display:           "WAV (Uncompressed)",
+        name:              _("WAV files"),
+        display:           _("WAV (Uncompressed)"),
         supports_metadata: false,
       ),
     }.freeze

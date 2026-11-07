@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>io.github.revisto.drum-machine</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Drum Machine</name>
+  <summary>Create and play drum beats</summary>
+  <description>
+    <p>
+      Drum Machine is a modern and intuitive application for creating, playing, and
+      managing drum patterns. Perfect for musicians, producers, and anyone interested
+      in rhythm creation, this application provides a simple interface for drum
+      pattern programming. Have fun!
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Intuitive grid-based pattern editor with infinite pages</li>
+      <li>Custom samples: Add your own drum sounds with MIDI note mapping</li>
+      <li>Adjustable BPM control</li>
+      <li>Volume control for overall mix</li>
+      <li>Save and load patterns</li>
+      <li>Multiple drum sounds including kick, snare, hi-hat, and more</li>
+      <li>Audio and MIDI export with support for WAV, FLAC, Ogg, MP3, and MIDI formats</li>
+      <li>Metadata support for embedding artist name, song title, and cover art</li>
+      <li>Keyboard shortcuts for quick access to all functions</li>
+    </ul>
+  </description>
+  <branding>
+    <color type="primary" scheme_preference="light">#eac8ff</color>
+    <color type="primary" scheme_preference="dark">#9d25ff</color>
+  </branding>
+  <screenshots>
+      <screenshot type="default">
+          <caption>Drum Pattern Loaded in Light Mode</caption>
+          <image>https://github.com/revisto/drum-machine/raw/main/data/screenshots/drum-machine-light.png</image>
+      </screenshot>
+      <screenshot environment="gnome:dark">
+          <caption>Drum Pattern Loaded in Dark Mode</caption>
+          <image>https://github.com/revisto/drum-machine/raw/main/data/screenshots/drum-machine-dark.png</image>
+      </screenshot>
+  </screenshots>
+  <translation type="gettext">drum-machine</translation>
+  <launchable type="desktop-id">io.github.revisto.drum-machine.desktop</launchable>
+  <url type="homepage">https://github.com/revisto/drum-machine</url>
+  <url type="bugtracker">https://github.com/revisto/drum-machine/issues</url>
+  <url type="vcs-browser">https://github.com/revisto/drum-machine</url>
+  <update_contact>therevisto@gmail.com</update_contact>
+  <developer id="gmail.com">
+    <name>Revisto</name>
+    <email>therevisto@gmail.com</email>
+  </developer>
+  <releases>
+    <release version="2.2.0" date="2025-12-18">
+      <description>
+        <p>Drum Machine 2.2.0: Reset to Defaults!</p>
+        <ul>
+          <li>Reset to Defaults: New menu option to restore all samples, BPM, and volume to factory settings</li>
+          <li>Clear Button: Renamed from Reset, now only clears the pattern while keeping custom samples</li>
+        </ul>
+      </description>
+    </release>
+    <release version="2.1.0" date="2025-12-14">
+      <description>
+        <p>Drum Machine 2.1.0: Drag and Drop!</p>
+        <ul>
+          <li>Drag-and-Drop: Reorder drum parts by dragging them to new positions in the drum parts column</li>
+          <li>Slide Animations: New drum placeholder now features smooth slide-down animations for better visual feedback</li>
+        </ul>
+      </description>
+    </release>
+    <release version="2.0.0" date="2025-12-12">
+      <description>
+        <p>Drum Machine 2.0.0 is a major release with custom samples! 🎶</p>
+        <ul>
+          <li>Custom Samples: Add your own drum sounds and map them to specific MIDI notes for export</li>
+          <li>MIDI Export: Export your patterns as MIDI files with proper note mapping</li>
+          <li>Pattern Management: Presets have been refactored to a more flexible pattern system</li>
+          <li>Bug Fixes: Sounds now stop immediately when pausing, disabled export when pattern is empty</li>
+          <li>New Translations: Added Catalan, Greek, and Uzbek languages</li>
+          <li>Translation Updates: Updated Slovenian, Basque, Ukrainian, Georgian, Chinese, Persian, and many more</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.5.0" date="2025-09-05">
+      <description>
+        <p>Drum Machine 1.5.0 introduces major audio export capabilities! 🎵</p>
+        <ul>
+          <li>Audio Export Feature: Export your drum patterns to WAV, FLAC, Ogg Vorbis, and MP3 formats</li>
+          <li>Metadata Support: Embed artist name, song title, and cover art in exported files</li>
+          <li>Repeat Pattern: Set how many times your beat repeats in the exported audio</li>
+          <li>Bug Fix: Fixed issue where multiple drum sounds weren't playing simultaneously</li>
+          <li>Translation Updates: Updated Spanish, Russian, Georgian, Chinese, Hungarian, Swedish, and more</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.4.0" date="2025-08-01">
+      <description>
+        <p>Drum Machine 1.4.0 is here with some good updates! 🥁</p>
+        <ul>
+          <li>More pages for longer, more complex beats, because sometimes you need more than 16 steps!</li>
+          <li>Mobile-friendly improvements, now your drum machine works better on phones (with showing half of the grid)</li>
+          <li>Goes global! Now translated into 17 languages including Chinese, Russian, Arabic, Hebrew, and many more</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.3.1" date="2025-02-10">
+      <description>
+        <p>This release of Drum Machine 1.3.1 brings significant UI and functionality improvements:</p>
+        <ul>
+          <li>Refactored headerbar and background styling for a flat, integrated visual experience.</li>
+          <li>Enhanced accessibility with improved tooltips and descriptive labels for BPM and volume controls.</li>
+          <li>Redesigned app icon and updated text styling for clearer user interface elements.</li>
+          <li>Optimized layout breakpoints to improve responsiveness and reduce early scrolling.</li>
+          <li>Fixed padding, border-radius, and vertical alignment issues across multiple controls.</li>
+          <li>Updated file dialogs to use the Nautilus file chooser for a more modern approach.</li>
+          <li>Improved keyboard navigation focus and updated tooltips, including dedicated play and pause hints.</li>
+          <li>Transitioned to the Nautilus file chooser for a more contemporary interface.</li>
+          <li>Now accessible on narrow mobile screens with adaptive UI elements.</li>
+          <li>Refined app icon, and adjusted brand colors for better contrast.</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">360</display_length>
+    <internet>offline-only</internet>
+  </requires>
+  <content_rating type="oars-1.1" />
+</component>

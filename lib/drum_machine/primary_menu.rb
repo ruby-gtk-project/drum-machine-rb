@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "gtk4"
+require_relative "translation"
 
 module DrumMachine
   # PrimaryMenu — ported from the `menu primary_menu` block in upstream's
@@ -8,17 +9,19 @@ module DrumMachine
   #
   # Three sections, five items, behind the header bar's hamburger button.
   class PrimaryMenu
+    extend Translatable
+
     SECTIONS = [
       [
-        ["_Add Samples…", "win.add_samples"],
-        ["_Save Pattern…", "win.save_pattern"],
+        [_("_Add Samples…"), "win.add_samples"],
+        [_("_Save Pattern…"), "win.save_pattern"],
       ],
       [
-        ["_Reset to Defaults", "win.reset_to_defaults"],
+        [_("_Reset to Defaults"), "win.reset_to_defaults"],
       ],
       [
-        ["_Keyboard Shortcuts", "app.shortcuts"],
-        ["_About Drum Machine", "app.about"],
+        [_("_Keyboard Shortcuts"), "app.shortcuts"],
+        [_("_About Drum Machine"), "app.about"],
       ],
     ].freeze
 

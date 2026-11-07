@@ -182,6 +182,22 @@ GtkDriver.drive(DrumMachine::Application.new, shots: "tmp/shots") do |d, app|
     win.call.window.visible_dialog&.close
   end
 
+  d.step("the shortcuts dialog's accelerators agree with what is actually bound") do
+    # Gtk canonicalises accelerator strings when it echoes them back
+    # ("<primary>q" in, "<Control>q" out), so both sides are parsed down to
+    # the same (keyval, modifier) form before comparing — a byte comparison
+    # would report every single-primary-key item as a mismatch.
+    canon = ->(accel) { Gtk.accelerator_name(*Gtk.accelerator_parse(accel)[1, 2]) }
+
+    d.check("every SECTIONS item's accelerator matches what win./app. actually bind") do
+      DrumMachine::ShortcutsDialog::SECTIONS.values.flatten(1).all? do |_label, action_name|
+        shown = DrumMachine::ShortcutsDialog.new.send(:accelerator_for, action_name)
+        bound = app.app.get_accels_for_action(action_name)
+        shown.nil? ? bound.empty? : shown.split(" ").map(&canon) == bound.map(&canon)
+      end
+    end
+  end
+
   d.step("the reset-to-defaults dialog opens") { win.call.window_actions.on_reset_to_defaults }
 
   d.step("the reset dialog is on screen") do
