@@ -3,76 +3,101 @@
 | | |
 |---|---|
 | Upstream | `origin/main` @ `fe31c4c` ("Update Hebrew translation") |
-| Port | `ruby` @ `cd13b2e` ("Restore the detailed component inventory") |
-| Method | `component-identification` skill, Step 1 (declarative `.ui`/`.blp` first), then `component-scan.sh` over both trees (`git worktree add --detach /tmp/dm-upstream origin/main`, `/tmp/dm-port origin/ruby`), cross-checked by reading |
+| Port | `ruby` @ `adc4970` |
+| Method | `component-identification` skill: declarative `.ui`/`.blp` first, `component-scan.sh` over both trees, every differing row read by hand |
 
-The `ruby` branch already carries a component inventory at
-`.reports/component-inventory.md` (21 numbered units + a re-survey pass). That
-document is the result of this skill having been run once already, at
-`90a3ede`/`cd13b2e`. This pass does not redo it from scratch; it **re-runs the
-scan independently** and spot-checks the inventory's specific claims rather
-than trusting them.
+The tree already carries two documents from earlier rounds:
+`.reports/component-inventory.md` (21 numbered units, a second-pass re-survey)
+and the previous `.reports/component-identification.md` (a scan re-run plus
+one finding about `shortcuts_dialog.rb`). This pass **re-verifies both
+against the code as it stands today**, because the previous
+`component-identification.md`'s one finding turned out to be stale — see
+below — and a document that is itself stale is exactly the thing
+`accountability-ensurance` exists to catch.
 
-## Re-run of the scan
+## Units confirmed
 
-```
-bash .claude/skills/component-identification/scripts/component-scan.sh /tmp/dm-upstream > /tmp/up.tsv   # 164 rows
-bash .claude/skills/component-identification/scripts/component-scan.sh /tmp/dm-port     > /tmp/port.tsv # 147 rows
-```
+`find /tmp/dm-upstream \( -name '*.blp' -o -name '*.ui' \)` still returns
+exactly the five declarative files the inventory maps: `window.ui`,
+`audio-export-dialog.blp`, `reset-defaults-dialog.blp`,
+`save-changes-dialog.blp`, `shortcuts-dialog.blp`. No upstream widget-tree
+root is missing from the existing 21-unit inventory.
 
-Aggregate counts (raw, pre-reconciliation — see `component-parity.md` for the
-per-file union that actually answers "is anything missing"):
+Two items the earlier re-survey flagged as open (`.reports/component-inventory.md`,
+"What remains for later steps") have since been closed and should no longer
+read as open:
 
-| kind | upstream | port |
-|---|---:|---:|
-| widget | 120 | 95 |
-| controller | 23 | 9 |
-| type (non-widget GTK class) | 70 | 34 |
-| css | 31 | 33 |
-| css-name | 0 | 0 |
-| signal | 34 | 53 |
-| action | 20 | 3 |
+- **`po/` has not been carried over at all** — false today. `po/`, `LINGUAS`
+  and `POTFILES.in` all exist on `ruby`, rewritten to Ruby paths; see
+  `translation-parity.md`.
+- **`.desktop.in`/`.metainfo.xml.in` are not ported** — false today. Both
+  exist under `data/` and are byte-identical to upstream.
 
-Raw totals are not a verdict (the skill is explicit that this is a per-file,
-per-unit question, not an app-wide total). The large `action` gap (20 vs 3) and
-`controller` gap (23 vs 9) are explained in `component-parity.md`: the
-upstream numbers are inflated by `grep`-visible literal occurrences inside a
-loop (`drag_drop_handler.py`'s `Gtk.DragSource`/`Gtk.DropTarget` matched 4 and
-13 times are one drag source and one drop target built once per instrument
-row, not 17 distinct controllers) and by `shortcuts-dialog.blp`'s 15
-`action-name` literals, which the port's `ShortcutsDialog` does **not**
-reproduce as action-name attachments (see finding below — this one is real,
-not a scan artifact).
+Flagging this because `accountability-ensurance` treats "a document cited as
+settled when the underlying state has moved" as the same failure as an
+excuse: a reader of the old inventory who stopped at that section would
+believe two closed gaps are still open.
 
-## Units (confirming the existing inventory's boundaries)
+## Correcting the previous round's one finding (`shortcuts_dialog.rb`)
 
-The existing inventory's 21 units match the `.blp`/`.ui` template roots
-(`src/window.ui`'s one `<template>`, the three dialog `.blp`s, the standalone
-`shortcuts-dialog.blp`) plus the pure-Python units (services, handlers,
-models, config) that have no template. I did not find an upstream widget-tree
-root the inventory missed: `find /tmp/dm-upstream \( -name '*.blp' -o -name
-'*.ui' \)` returns exactly the five files the inventory already maps
-(`window.ui`, `audio-export-dialog.blp`, `reset-defaults-dialog.blp`,
-`save-changes-dialog.blp`, `shortcuts-dialog.blp`).
+The prior `.reports/component-identification.md` reported:
 
-## Finding: `ShortcutsDialog` drops the `action-name` facet
+> "the shortcuts dialog goes stale silently, with no test catching it ...
+> Functionally the accelerators shown are hand-typed strings in `SECTIONS`,
+> duplicating — not reading from — the accelerators `WindowActions`/
+> `Application` actually bind."
 
-`src/gtk/shortcuts-dialog.blp` gives every `Adw.ShortcutsItem` an
-`action-name` (`win.clear_toggles`, `win.play_pause`, etc. — 15 of them). The
-port's `lib/drum_machine/shortcuts_dialog.rb` builds `ShortcutsItem.new(label,
-accelerator)` — **title and accelerator only, no action-name**:
+Reading `lib/drum_machine/shortcuts_dialog.rb` as it exists now (not as that
+finding described it) shows this is no longer accurate:
 
 ```ruby
-def item(label, accelerator) = Adwaita::ShortcutsItem.new(label, accelerator)
+SECTIONS = { ... }  # label => "win.foo" / "app.foo" action name, not an accelerator string
+...
+def accelerator_for(action_name)
+  prefix, name = action_name.split(".", 2)
+  table = prefix == "app" ? Application::ACTIONS : WindowActions::ACTIONS
+  _, _, accelerators = table.find { |entry_name, *| entry_name == name }
+  accelerators&.join(" ")
+end
 ```
 
-This is a genuine facet drop (the "Actions" row in the component-identification
-table), not a binding limitation recorded anywhere in the port's own ledger.
-Functionally the accelerators shown are hand-typed strings in
-`SECTIONS`, duplicating — not reading from — the accelerators
-`WindowActions`/`Application` actually bind. The two are consistent *today*
-(verified by diff against `window_actions.rb` and `application.rb`), but
-nothing keeps them consistent: change an accelerator in `WindowActions::ACTIONS`
-and the shortcuts dialog goes stale silently, with no test catching it. Not a
-functional gap today; a structural one that should be on record. See
-`component-parity.md` and `accountability-ensurance.md`.
+`SECTIONS` stores the **action name**, and `accelerator_for` looks the
+accelerator up live, at dialog-build time, from the same `ACTIONS` tables
+`WindowActions`/`Application` actually bind from — it is not a second,
+hand-copied string. And there is a live test for exactly the staleness
+scenario the old finding worried about:
+`test/drive_main_window.rb:185-196`, step "the shortcuts dialog's
+accelerators agree with what is actually bound", asserts
+`DrumMachine::ShortcutsDialog.new.send(:accelerator_for, action_name) ==
+app.app.get_accels_for_action(action_name)` (canonicalised) for every
+`SECTIONS` entry. I ran it live this round (`rake drive`) and it passes.
+
+**What is still a real, narrower gap**, correcting the old finding rather
+than repeating it: `Adw.ShortcutsItem` upstream is given `action-name`
+directly as a GObject property (`src/gtk/shortcuts-dialog.blp`'s 15
+`action-name` lines) — the facet GTK uses to let `Adw.ShortcutsWindow`
+cross-reference an item against the app's actual accelerators and (on
+platforms where it matters) make the row itself actionable. The port's
+`item(label, accelerator) = Adwaita::ShortcutsItem.new(label, accelerator)`
+takes a pre-resolved accelerator string, never sets `action-name` on the
+widget itself. The *value* now matches (proven by the test above); the
+*facet* — the widget carrying its own action reference, the way upstream's
+does — is still absent. This is a correspondence worth recording, not a
+functional regression: there is no evidence `Adw.ShortcutsItem#action-name`
+drives any further runtime behavior beyond display in current libadwaita,
+and `Adwaita::ShortcutsItem.new` does not appear to expose an `action_name=`
+setter in the Ruby binding (not independently re-confirmed against the gir
+this round). Recorded for `component-parity.md`'s action axis rather than
+re-asserted as the open staleness risk the old report described, because
+that risk is specifically what the new test closes.
+
+## Scan counts (for the record, re-run this round)
+
+```
+component-scan.sh /tmp/dm-upstream  → 164 rows
+component-scan.sh .                 → 147 rows
+```
+
+Consistent with the prior round's numbers; no new widget-tree units found or
+lost since the last scan. Per-axis reconciliation is `component-parity.md`'s
+job, not this document's.

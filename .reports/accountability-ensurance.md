@@ -2,88 +2,130 @@
 
 ## Scope grepped
 
-`lib/`, `exe/`, `.reports/`, and the repo root for `PORTING.md` (does not
-exist on this branch), plus the skill's own `find-excuses.sh` over the whole
-tree (excluding `.git`, `po/`, `.claude/skills/`).
-
 ```
 grep -rniE "TODO|FIXME|not implemented|for now|in a future|unimplemented|stub" lib/ exe/
   → (nothing)
 
 bash .claude/skills/accountability-ensurance/scripts/find-excuses.sh .
-  → 7 hits, all inside .reports/component-inventory.md, none in lib/ or exe/
+  → 18 hits: 17 in .reports/*.md, 1 in lib/drum_machine/translation.rb:7
 ```
 
-## Reading the 7 hits
+(The previous round found 7 hits, all in `.reports/component-inventory.md`.
+This round's number is higher only because this round's own
+`.reports/accountability-ensurance.md` and `.reports/component-inventory.md`
+both quote the construction while discussing it, which the scanner matches
+and which is the documented exemption — "a document *about* excuses" — not a
+new finding. The one hit outside `.reports/` is new to this analysis, not to
+the tree: it has been in `translation.rb` since it was written.)
 
-| Line | Phrase | Verdict label | Read |
-|---|---|---|---|
-| 472, 486 | "no Ruby equivalent" | "the analogue is the BEHAVIOUR" | Both are the *interfaces* row (`src/interfaces/player.py`, `sound.py` — ABCs with no subclass of their own) and the blocker-2 writeup about `pygame`/`numpy`/`mido`. The actual behaviours (playback, WAV mixing, MIDI read/write) **are** ported — `sound_service.rb`, `audio_renderer.rb`, `pattern_service.rb` exist and their checks pass live (`test/check_pattern_service.rb`, confirmed in `test-parity.md`). The phrase refers only to the abstract-base-class *type*, which Ruby has no equivalent concept for and which carries no behaviour of its own. **Not an excuse** — the behaviour is named, located, and verified running. |
-| 475 | "not ported" (×1) + verdict "honest but toothless" | `src/services/preset_service.py` — do not port: dead code, a second class also named `PatternService`, imported by nothing. I verified this independently: `grep -rn "preset_service\|PresetService" /tmp/dm-upstream/src` finds only the file's own definition, no import anywhere else in `src/`. **Confirmed dead code, not an excused gap** — there is nothing here to port because nothing upstream reaches it either. |
-| 602, 603 | "not ported" (×2) | `.desktop.in`/`.metainfo.xml.in` metadata, and build plumbing (`meson.build`, `.flake8`, `.github/`, `snap/`, `requirements.txt`) | These are packaging/build-system files, not UI or behaviour — outside what `component-identification`/`component-parity` claim as scope (widgets, CSS, signals, actions, text). Naming them "not ported" and saying why is disclosure, not an excuse for a missing *component*. **Flagged as a genuine, separate gap below** (desktop metadata has translatable strings too), but not as an excuse dressed as a decision. |
-| 416, 417 | "skipped" (×2) | Toast message text `"{} files skipped"` / `"Added {} drum part, {} files skipped"` | These are literal product strings (upstream toast copy), not a claim about the port's own work. Noise match. |
+## The one real hit: `lib/drum_machine/translation.rb:7`
 
-No hit in this run reads as an unmade decision presented as settled. The
-`find-excuses.sh` output does not need the confessional rewrite — every match
-is either a verified-dead-code call, a literal product string, or packaging
-scope correctly disclosed as out of scope.
-
-## The real accountability finding: a possible false green in `spec/`
-
-The sharpest thing this audit found is not a hidden TODO — it's an
-**appearance of a passing test suite that is not one.**
-`spec/README.md` describes a fully-built RSpec harness (`kettle-test`,
-`stub_env`, time-travel helpers, coverage via `kettle-soup-cover`) in prose
-confident enough to read as "this works; here's how to use it." I ran it:
-
-```
-nix develop --command ruby -e 'require "rspec/core"; exit RSpec::Core::Runner.run(
-  ["--format", "progress", "--require", "spec_helper", "spec"])'
-→ LoadError: cannot load such file -- kettle/test/rspec
-→ 0 examples, 0 failures, 2 errors occurred outside of examples
+```ruby
+# Translation — the gettext wiring every file with user-visible strings
+# needs. Not ported from one upstream file: it stands in for upstream's
+# Meson `i18n.gettext()` call plus the `locale/`-relative `.mo` lookup
+# GLib does at runtime, neither of which has a single source file.
 ```
 
-`rake spec` and `bundle exec rspec` also fail outright (see
-`test-parity.md` for both transcripts). **Nobody has to claim this suite
-passes for it to function as a false green** — a reviewer who reads
-`spec/README.md`, sees `kettle-test` in the gemspec's development
-dependencies, and does not personally invoke the runner would reasonably
-conclude a test suite exists and is maintained. It does not run, at all, in
-this fork's own Nix environment, and 0 examples is not evidence of
-correctness no matter how it is phrased. This is the single highest-severity
-finding in this audit: the thing most likely to be mistaken for a green
-signal is the one definitively proven broken by actually running it.
+Read against the rule ("no sentence a reader could mistake for a decision"):
+this sentence is not excusing a *missing behaviour* — the behaviour
+(gettext wiring, domain binding, `.mo` lookup) is built, two lines down, and
+works (`translation-parity.md` confirms 243/259 messages reachable through
+exactly this file). "Not ported from one upstream file" is stating a 1-to-many
+file mapping, which `component-parity.md`'s own rules carve out as a named
+correspondence, not a gap. **This is not the failure the skill exists to
+catch** — nobody reading it would conclude a feature is missing, because no
+feature is named as missing. It is flagged here anyway, because the
+construction matches and a borderline case is still worth a reader's eyes:
+if this file is ever used as the template for a future excuse ("not ported
+from one upstream file" applied to something that *is* missing a behaviour),
+it would launder exactly the way the skill warns about. Recommend tightening
+the wording away from "Not ported" regardless, since the phrase itself is on
+the skill's watch-list and a calm reading of one instance is how a reader's
+guard comes down for the next one. Not rewritten as a confession, because
+rewriting a true, non-excusing architecture note as a confession of
+incompetence would itself be dishonest — the rule is "no false sanction",
+not "no explanation of any kind, ever".
 
-The actual verified-passing checks — the two `test/*.rb` driver scripts, 46
-and 19 "ok" lines respectively — are real, and I ran both myself rather than
-taking the "46 of 46 checks passed" claim in the runtime gate on faith. That
-claim is accurate. What is not accurate, anywhere it might be assumed, is
-that `spec/` backs it up.
+## The hits inside `.reports/`
 
-## Secondary finding: desktop metadata strings are also untranslated and unported
+All 17 are the two earlier rounds' own analysis of the construction (this
+file and `component-inventory.md` both quote phrases like "not ported" and
+"no Ruby equivalent" while explaining why each instance is or isn't an
+excuse). This is the skill's stated exemption and is not re-litigated row by
+row here; the previous round's reasoning (in the version of this file prior
+to this edit, preserved in git history) already traced each one to either
+verified dead code, a literal product string, or correctly-scoped packaging
+disclosure, and nothing in this round's independent re-reading overturns
+that.
 
-`.desktop.in`/`.metainfo.xml.in` are correctly disclosed as "not ported" in
-the component inventory (packaging, not UI), but both files carry their own
-translatable strings (app name, summary, description) that are part of
-upstream's `po/` extraction (`POTFILES.in` includes them) and are visible to
-a user in GNOME Software / the app grid regardless of in-app i18n. This
-compounds the `translation-parity.md` gap rather than standing apart from
-it — recorded here because it is exactly the kind of gap that "not ported,
-by decision" language could quietly absorb if not checked against
-`POTFILES.in` directly, which I did: `cat /tmp/dm-upstream/po/POTFILES.in`
-lists both files among its 17.
+One correction to the previous round's own text, found while re-verifying it
+for this pass: the earlier `.reports/component-inventory.md` "What remains
+for later steps" section still asserts, in the committed tree, that
+"`po/` has not been carried over at all" and that `.desktop.in`/
+`.metainfo.xml.in` "are not ported". **Both are false as of this round** —
+`po/`, `LINGUAS`, `POTFILES.in`, and both metadata files all exist on `ruby`
+today (see `translation-parity.md`, `component-identification.md`). That
+section of `component-inventory.md` is not an excuse construction the
+scanner flags, but it is the same underlying failure mode one level up: a
+document stating a gap is open when it has in fact been closed is exactly as
+misleading to the next reader as a document stating a gap is closed when it
+is open. Recorded here because `accountability-ensurance` is the ledger that
+exists to catch a document being trusted past its truth, regardless of which
+direction the staleness points.
+
+## The false-green risk from the previous round: resolved, and said so
+
+The previous round's single highest-severity finding was that `spec/`'s
+RSpec harness advertised itself in prose (`spec/README.md`, the gemspec's
+dev dependencies) while being unable to load at all — `0 examples, 0
+failures, 2 errors occurred outside of examples` under every invocation
+tried. I re-ran all three invocations that report tried, from a clean shell,
+rather than trusting either that report's "broken" verdict or the current
+runtime gate's "green" framing:
+
+```
+bundle exec rspec     → still fails (rspec-core not in the bundle)
+rake spec              → still fails (kettle-dev not installed/disabled)
+rake spec_direct       → 6 examples, 0 failures   (xvfb-run required — see test-parity.md)
+```
+
+So the false-green risk as *originally described* — "nobody has ever run
+this suite successfully" — is **fixed**: `rake spec_direct` is a real,
+passing invocation, and it is the one the dev-shell banner actually
+recommends. But the fix is partial in a way worth stating plainly rather
+than rounding up to "resolved": the two conventional entry points a reviewer
+reaches for without reading the banner (`bundle exec rspec`, `rake spec`)
+**still fail**, for different reasons than before (a missing bundled gem;
+`kettle-dev` disabled for this Ruby version) rather than the original
+`LoadError`. A reviewer who runs `rake spec` today, sees the "isn't
+installed, or is disabled" note, and does not go read the banner for the
+alternate command name would reach the same false conclusion the previous
+round warned about, via a different stack trace. This is recorded as an
+open, lower-severity version of the same risk in `test-parity.md`, not
+re-claimed as fully closed here.
 
 ## Summary
 
-- No TODO/FIXME/stub/"not implemented"/"for now"/"in a future" language in
+- No `TODO`/`FIXME`/`not implemented`/"for now"/"in a future" language in
   `lib/` or `exe/`.
-- No unmade decision in `.reports/` presented as settled; every
-  `find-excuses.sh` hit traced to either verified dead code, literal product
-  copy, or correctly-scoped packaging disclosure.
-- One severe false-green risk: `spec/`'s RSpec harness is advertised in
-  prose and in the gemspec's dependency list but cannot load or run in this
-  fork's own dev shell — 0 examples have ever executed successfully.
-- One compounding translation gap not previously named: desktop/metainfo
-  strings, which `translation-parity.md`'s count already implicitly includes
-  via `POTFILES.in` but which the inventory's "not ported" packaging note
-  could be misread as excusing.
+- One real excuse-shaped sentence outside `.reports/`
+  (`translation.rb:7`), judged not to be excusing a missing behaviour on
+  inspection, flagged anyway for wording.
+- One stale claim found and corrected: `component-inventory.md` describes
+  `po/` and the desktop/metainfo files as unported; both exist today. Fixed
+  in `component-identification.md` this round.
+- The previous round's severe false-green finding (RSpec suite unrunnable)
+  is substantively fixed — `rake spec_direct` passes — but the two
+  conventional commands a reviewer would try first are still broken for
+  other reasons, which is a live, named, lower-severity residue of the same
+  risk, not a clean bill.
+- New material finding surfaced by this round's `translation-parity` pass,
+  not previously recorded anywhere in `.reports/`: 16 upstream msgids
+  (`DEFAULT_DRUM_PARTS`, `DEFAULT_PATTERNS` in `constants.rb`) are bare
+  string literals in the port with no translation marker at all. This is
+  not excused anywhere — no comment near those two arrays claims they are
+  intentionally left English — it is simply a gap nobody had found yet.
+  Recording it here, in addition to `translation-parity.md` and
+  `component-parity.md`, satisfies this skill's own rule that a real gap
+  gets named with file:line rather than left implicit.

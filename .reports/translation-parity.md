@@ -1,74 +1,142 @@
 # Translation parity — drum-machine-rb
 
-## The census
+| | |
+|---|---|
+| Upstream | `main` @ `fe31c4c` |
+| Port | `ruby` @ `adc4970` |
+| Domain | `drum-machine` (matches; `lib/drum_machine/translation.rb` binds this exact name) |
+| Upstream messages (source, excl. `po/`) | 259 |
+| Ported | 243 |
+| Gaps | **16** |
+| Extra (untranslated) | 0 real (4 scanner artefacts, see below) |
+| Upstream languages | 28 `.po` files, `LINGUAS` matches |
+| Languages shipped by the port | 28 `.po` + 28 compiled `.mo` under `locale/` |
+| Build command | `rake gettext:mo:update` (per `Rakefile:185-211`) |
+
+Census: `.claude/skills/translation-parity/scripts/msgid-census.sh` run over
+`origin/main` (worktree at `/tmp/dm-upstream`) and over `ruby`'s working tree,
+with `po/*` rows excluded from the message set per the skill (they are a
+snapshot of the last `msgmerge`, not the catalogue).
+
+## The good news first
+
+- `po/`, `LINGUAS`, `POTFILES.in` were copied over and rewritten to Ruby
+  paths. `diff <(ls po/*.po|xargs -n1 basename -s .po|sort) <(sort po/LINGUAS)`
+  is empty on both trees — 28 languages, exact match.
+- The domain (`drum-machine`) is kept, not renamed — `Translation::DOMAIN` in
+  `lib/drum_machine/translation.rb:20` — so all 28 donated catalogues are
+  reachable.
+- `.mo` files are actually built and present under `locale/<lang>/LC_MESSAGES/`
+  (28 of 28), and `bindtextdomain(DOMAIN, path: LOCALE_DIR)` points at them.
+- `data/io.github.revisto.drum-machine.desktop.in` and
+  `...metainfo.xml.in` are byte-identical to upstream (`diff` empty both
+  ways), so the app-grid-visible strings (`Name`, `Keywords`, the AppStream
+  summary/description) are intact and still extracted.
+- 243 of upstream's 259 source-side messages are reachable by exact
+  `(msgctxt, msgid)` key in the port.
+
+## The gap: 16 messages, all from one file
+
+`comm -23` on the two key sets returns exactly these 16, and every one traces
+to the same upstream file:
 
 ```
-cd /tmp/dm-upstream
-grep -c '^msgid' po/drum-machine.pot        → 238 (237 real + the header's empty msgid)
-cat po/LINGUAS                                → bg ca de el en_GB eo es eu fa fi fr he hu it ka
-                                                 kk nb nl pt pt_BR ru sl sr sv tr uk uz zh_CN  (28)
-po/*.po                                       → 28 files, one per LINGUAS entry, plus the .pot
+src/config/constants.py:25-34   DEFAULT_DRUM_PARTS   _("kick") _("kick-2") _("kick-3")
+                                                       _("snare") _("snare-2") _("hihat")
+                                                       _("hihat-2") _("clap") _("tom") _("crash")
+src/config/constants.py:38-43   DEFAULT_PATTERNS     _("Shoot") _("Maybe Rock") _("Boom Boom")
+                                                       _("Night") _("Slow") _("Chill")
 ```
 
-Upstream ships **237 distinct msgids**, **28 translated locales**, and a
-`POTFILES.in` naming 17 source files to extract from.
+The port's `lib/drum_machine/constants.rb:12-31` carries the same 16 names as
+**bare string literals**, with no `_()`/`DrumMachine::Translatable` marker at
+all:
 
+```ruby
+DEFAULT_DRUM_PARTS = [
+  "kick", "kick-2", "kick-3", "snare", "snare-2",
+  "hihat", "hihat-2", "clap", "tom", "crash",
+].freeze
+DEFAULT_PATTERNS = ["Shoot", "Maybe Rock", "Boom Boom", "Night", "Slow", "Chill"].freeze
 ```
-cd /home/nathan/src/github/ruby-gtk-project/drum-machine-rb
-find . -iname "*.po" -o -iname "*.pot" -o -iname "*.mo"   → (nothing, repo-wide)
-grep -rn "gettext\|GetText\|_(\"" lib/ exe/                → (nothing)
-```
 
-## Verdict: total gap
+This is not cosmetic. Both arrays are load-bearing, user-visible text:
 
-- **Key sets equal?** No. Port: 0 msgids. Upstream: 237. 0/237 survive.
-- **Byte-identical?** N/A — there is nothing to compare bytes against,
-  because no string in `lib/` or `exe/` goes through a translation marker at
-  all. Every user-visible string the component-inventory catalogues (toast
-  messages, dialog titles, button labels, tooltips, accessibility strings,
-  the "Default Patterns" menu section title, the six pattern names, the ten
-  default part names, `translator-credits`, the shortcuts-dialog labels) is
-  a bare Ruby literal.
-- **Languages ship?** No. 0 of 28. There is no `po/` directory, no
-  `LINGUAS`, no `.mo` build step, and no gettext runtime wiring
-  (`GetText.bindtextdomain`, `FastGettext`, or equivalent) anywhere in
-  `lib/drum_machine.rb`, `exe/drum-machine`, `flake.nix`, or the gemspec.
+- `Constants::DEFAULT_DRUM_PARTS` is consumed by
+  `lib/drum_machine/drum_part_manager.rb:166` to build the default ten drum
+  parts — these names are exactly the row labels on the ten default
+  `drum-part-button`s in the grid (see `component-parity.md`, unit 8).
+- `Constants::DEFAULT_PATTERNS` is the default argument to
+  `lib/drum_machine/pattern_menu.rb:22`, i.e. the six pattern names in the
+  pattern-selector menu a user opens from the header bar.
 
-Per the `translation-parity` skill's own framing, this is not a state the
-project is entitled to call "not ready yet" or "English-only for now" — both
-are explicitly named in the skill as non-states. It is a plain count: **0 of
-237 messages, 0 of 28 languages**, and every one of those 28 donated
-catalogues is currently dead on this branch — not deferred, discarded, in
-the sense that nothing in the port would resume using them even if the `po/`
-directory were copied in, because no string is marked to look anything up.
+So a non-English build of this port shows "kick", "Shoot", "Maybe Rock" etc.
+in English in every one of the 28 languages, in exactly the two places a
+user looks first (the drum grid and the pattern menu), because the strings
+were retyped without their marker when `constants.rb` was ported. All 16 are
+listed below with the byte-identical English to transcribe back in.
 
-## Where this is and is not already disclosed
+| # | msgid | Port site |
+|---|---|---|
+| 1 | `kick` | `lib/drum_machine/constants.rb:12` |
+| 2 | `kick-2` | `lib/drum_machine/constants.rb:13` |
+| 3 | `kick-3` | `lib/drum_machine/constants.rb:14` |
+| 4 | `snare` | `lib/drum_machine/constants.rb:15` |
+| 5 | `snare-2` | `lib/drum_machine/constants.rb:16` |
+| 6 | `hihat` | `lib/drum_machine/constants.rb:17` |
+| 7 | `hihat-2` | `lib/drum_machine/constants.rb:18` |
+| 8 | `clap` | `lib/drum_machine/constants.rb:19` |
+| 9 | `tom` | `lib/drum_machine/constants.rb:20` |
+| 10 | `crash` | `lib/drum_machine/constants.rb:21` |
+| 11 | `Shoot` | `lib/drum_machine/constants.rb:26` |
+| 12 | `Maybe Rock` | `lib/drum_machine/constants.rb:27` |
+| 13 | `Boom Boom` | `lib/drum_machine/constants.rb:28` |
+| 14 | `Night` | `lib/drum_machine/constants.rb:29` |
+| 15 | `Slow` | `lib/drum_machine/constants.rb:30` |
+| 16 | `Chill` | `lib/drum_machine/constants.rb:31` |
 
-`.reports/component-inventory.md`'s "What remains for later steps" section
-already says plainly: *"`po/` has not been carried over at all; upstream
-ships 28 locales plus `drum-machine.pot`, and `POTFILES.in` lists 17 files."*
-That is an honest, specific disclosure, not an excuse — it names the count
-and does not claim it is done. This report confirms that disclosure is
-accurate and adds the exact numbers (237 msgids, not just "the pot file")
-and the fact that there is zero gettext call-site infrastructure in `lib/` to
-build on, which the existing note does not spell out: this is not "copy
-`po/` over", it is "mark ~237 strings across every file in the inventory's
-21 units, then copy `po/` over, then wire a `.mo` build and a runtime
-`bindtextdomain`/`textdomain` call that nothing in the port currently makes."
+State: **gap**, all 16. `Text still owed` is the msgid column verbatim; fix
+is `_("kick")` etc. (constants.rb would need to `include DrumMachine::Translatable`
+or wrap at the call site in `drum_part_manager.rb`/`pattern_menu.rb`, since
+these are frozen module constants evaluated at load time before any
+`bindtextdomain` call order concern — same pattern the rest of the port
+already uses for everything else).
 
-## What a real translation-parity pass requires here (not yet started)
+This is the exact "Uses" mismatch this skill's own rule calls out: the
+catalogue key for `_Cancel`-style reused strings elsewhere in the port is all
+present (243/243 of everything else checked), but these two tables were
+simply missed, in full, as a unit — not reworded, not partially ported,
+just never wrapped.
 
-1. Mark every string the component inventory already lists per unit with a
-   gettext call, using **upstream's exact msgid bytes** (readable straight
-   out of `po/drum-machine.pot` — e.g. `msgid "Open…"`, `msgid "BPM"`,
-   `msgid "Added: %s"`), not a retyped equivalent.
-2. Decide and wire the Ruby gettext path (`gettext` gem vs `FastGettext`) and
-   add it to `flake.nix`/the gemspec — currently absent.
-3. Copy `po/` (28 `.po` + `drum-machine.pot` + `LINGUAS`) into the port
-   unchanged, build `.mo`s, and load the right locale at startup.
-4. Re-run the `msgid-census.sh` diff from the skill between
-   `po/drum-machine.pot` and a freshly extracted port catalogue until it is
-   empty.
+## Scanner artefacts, not findings
 
-None of this exists yet. This is the largest single gap found in this
-audit.
+4 rows on the port side carry `!unresolved` and are not real extra messages:
+they are `msgid-census.sh` matching the lambda-style method bodies in
+`lib/drum_machine/translation.rb` itself (`def _(msgid) = ...`,
+`def n_(singular, plural, n) = ...`) as if they were call sites with a
+non-literal argument. They are the *definitions* of the markers, not a use of
+one. No action needed; noted so the 247-vs-259 raw key-set count in the
+earlier draft of this ledger is not misread as 4 more gaps than the 16 above.
+
+## Not checked / open
+
+- **Plural-form and msgctxt kind agreement** (`kind: plural` upstream vs.
+  `single` in the port) was not fully re-verified this round after the
+  scanner-key join produced noisy output on this tree's quoting; the `n_()`
+  call sites that do exist (`DrumMachine::Translatable#n_`) look correctly
+  paired by inspection but a clean machine-checked diff of `kind` per key is
+  an unrun check — note it here rather than claim it passed.
+- **`msgfmt -c` validation** of the 28 `.po` files was not run (no `gettext`
+  CLI confirmed in the dev shell for this invocation); the shipped `.mo`
+  files under `locale/` were trusted as already built rather than rebuilt
+  from source in this session.
+- **On-screen verification in a non-English locale** (`LANGUAGE=de` etc.)
+  was not performed this round.
+
+## Verdict
+
+**Not clean.** 243/259 messages (93.8%) byte-identical and reachable; 16/259
+(6.2%) — two entire upstream data tables — ported as untranslatable literals.
+28/28 languages shipped and wired to the right domain. The two metadata files
+and the `po/` plumbing are solid; the gap is narrow, named, and entirely
+confined to `constants.rb`.

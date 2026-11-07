@@ -3,93 +3,104 @@
 | | |
 |---|---|
 | Upstream | `main` @ `fe31c4c` |
-| Port | `ruby` @ `cd13b2e` |
-| Units with parity | 20 / 21 (see gap below) |
+| Port | `ruby` @ `adc4970` |
+| Units with parity | 19 / 21 (two gaps below; see also unexercised units at the end) |
 
-This builds on `.reports/component-inventory.md` (21 units, all four axes
-checked per the existing document) and `.reports/component-identification.md`
-(this pass's independent re-scan). I spot-verified rather than re-derived
-every row, because the existing inventory already did the per-file union work
-the skill asks for and shows its reasoning. What follows is what I checked by
-hand and what I found that the existing document does not already say.
+This builds on `.reports/component-inventory.md` (21 units) and
+`.reports/component-identification.md` (this round's re-check, including a
+correction of the previous round's `shortcuts_dialog.rb` finding). What
+follows is what changed or what I found that those documents do not already
+say.
 
-## Spot checks that held
+## Correction carried over from `component-identification.md`
 
-- **Right-click gesture on a beat toggle** (`src/window.py:272`
-  `_on_right_click_released`, type-hinted `Gtk.GestureClick`). The raw scan
-  shows this controller present upstream and absent in the port's aggregate
-  count, which looked like a miss. Read: `lib/drum_machine/drum_grid.rb:343`
-  and `:489` both build `Gtk::GestureClick.new` with `button =
-  Gdk::BUTTON_SECONDARY` and call `@window.on_right_click_released(button)`,
-  matching `window.rb:365`. **Correspondence, not a gap** — the scan's
-  per-occurrence counting just didn't line up 1:1 with the per-file total.
-- **Action accelerators**: `quit` (`<primary>q`), `close_window`
-  (`<primary>w`), `shortcuts` (`<primary>question`) all match byte-for-byte
-  between `src/handlers/window_actions.py` / `src/application.py` and
-  `lib/drum_machine/window_actions.rb` / `lib/drum_machine/application.rb`.
-- **`app.shortcuts` / shortcuts dialog reachability**: confirmed as a
-  deliberate, recorded divergence (upstream installs no such action and loads
-  no `.ui` for the blueprint; the port installs the action and presents the
-  dialog). This is *more* correct than upstream, and the inventory says so.
-- **Blocker resolutions 1–10** (layout convention, audio/MIDI stack, action
-  naming, toggle registry, threads, `Adwaita::ShortcutsDialog` bindings,
-  breakpoint mechanism, stylesheet loading, `half-view`) — all read against
-  the actual files named in the "Blockers now resolved" table and all check
-  out: e.g. `lib/drum_machine/style.rb` does call `Gtk::StyleContext.add_...`
-  with two `Gtk::CssProvider`s, `drum_machine_service.rb` does use
-  `GLib::Timeout`.
-
-## Gap: `ShortcutsDialog` has no `action-name` facet
-
-See `component-identification.md`. Per the `component-parity` skill's own
-rule set, a facet (here, the Actions column) either has a located
-counterpart or is a gap — "the port does this differently [by hardcoding
-strings]" is not itself a counterpart.
+The previous round's component-parity.md reported `Adw.ShortcutsItem` as a
+gap on the grounds that `SECTIONS`' accelerators were hand-typed strings
+duplicating, and liable to drift from, `WindowActions::ACTIONS` — "nothing
+enforces the agreement". Reading the current `shortcuts_dialog.rb`, that is
+no longer true: `SECTIONS` stores the action name, and `accelerator_for`
+resolves the displayed accelerator live from `WindowActions::ACTIONS` /
+`Application::ACTIONS` at dialog-build time. `test/drive_main_window.rb`
+step 31 (`the shortcuts dialog's accelerators agree with what is actually
+bound`) asserts this for all 15 items and passes — I ran it this round.
 
 | Widget | Up × | Port × | CSS | Signals | Actions | Text | Verdict |
-|---|---:|---:|---|---|---|:-:|---|
-| `Adw.ShortcutsItem` | 15 | 15 | — | — | ✗ (hard-coded label+accel, no `action-name`) | ✓ | **gap**: action-name facet dropped |
+|---|---:|---:|---:|---|---|:-:|---|
+| `Adw.ShortcutsItem` | 15 | 15 | — | — | ✓ (value verified live by a drive check) / ✗ (no `action-name` GObject property set on the widget itself) | ✓ | **gap, narrowed**: the widget never carries `action-name` as a property; the value it displays is proven correct by test, not by inspection |
 
-This is a narrow, low-severity gap (the dialog is read-only chrome, and the
-two sources of truth agree today), but it is real: nothing enforces the
-agreement, and the drive suite's checks 29–30 only assert the dialog
-*presents*, not that its listed accelerators match `WindowActions::ACTIONS`.
-Recommended fix: either give `ShortcutsItem` the actual action name (if the
-Ruby binding supports it — unverified; the `ruby-gtk` skill should be
-consulted for this specifically) or derive `SECTIONS`' accelerator strings
-from `WindowActions::ACTIONS` / `Application`'s accel table at load time
-instead of duplicating them as literals.
+Still a gap because the facet (the property existing on the widget) is
+absent, not because the behaviour is wrong — the behaviour is now actively
+tested and correct. Downgrading this from "no test catching it" (false
+today) to "the property itself is unset" (true today, and low severity) is
+itself a finding: a stale parity document would have continued reporting a
+closed risk as open.
 
-## What the drive suite does and does not exercise (this round's gate)
+## New gap found this round: default drum-part and pattern names are untranslated
 
-Ran live: `nix develop --command xvfb-run -a ruby test/drive_main_window.rb` →
-**46 of 46 checks passed, DRIVE OK**. The claim in this round's gate
-(`drive_ok=true`, 46/46, 0 failed) is real and reproduced, not taken on
-faith — I executed it myself.
+This is a **text-axis** gap on two units the existing inventory marks
+"exists" with no gap noted:
 
-The drive script's 49 `d.step` blocks touch: window build, pattern menu,
-primary menu, toggle state, transport (play/pause/stop), BPM, volume
-(including mute/unmute), keyboard-driven carousel paging, a toast with a file
-action, the half-view breakpoint rebuild, About, Shortcuts, Reset-to-defaults,
-Save-changes, MIDI-mapping and Export dialogs, the drum-part context menu, the
-drag placeholder, adding/removing a custom sample, and reset-to-defaults.
-That is a wide, real cross-section — not a narrow gate dressed up as broad.
+- **Unit 8** (`src/ui/drum_grid_builder.py` → `lib/drum_machine/drum_grid.rb`
+  + `drum_part_manager.rb`) — the ten default `drum-part-button` row labels.
+- **Unit 5** (`src/window.ui` → `pattern menu` → `lib/drum_machine/pattern_menu.rb`)
+  — the six default pattern-menu entries.
 
-**Not exercised by any check, upstream-side components that exist and are
-claimed ported:**
-- The six `Gtk.FileDialog` flows (`file_dialogs.rb`) — open/save/add-sample
-  native dialogs are not drivable headlessly by this harness and the script
-  does not attempt them. No check asserts their behaviour (file-type filters,
-  the save-changes-then-discard branch inside `window_actions.rb`'s
-  `load_pattern`/`save_pattern`, etc.).
-- `AudioExportService`/`AudioRenderer`/`FileEncoder`'s actual encode-to-disk
-  path for the non-WAV formats (MP3/OGG/FLAC via the `ffmpeg` subprocess) —
-  the drive script opens the export dialog (check 37–38) but does not run an
-  export to completion for any format.
-- Any of the 28 locales — there are none in the port to exercise (see
-  `translation-parity.md`).
+| Widget | Up × | Port × | CSS | Signals | Text | Verdict |
+|---|---:|---:|---|---|:-:|---|
+| `Gtk.Button` instrument button (unit 8) | 10 (default set) | 10 | ✓ | ✓ | ✗ — labels sourced from `Constants::DEFAULT_DRUM_PARTS`, 10 bare string literals, `_()` dropped | **gap** |
+| pattern-menu item (unit 5) | 6 (default set) | 6 | — | ✓ `activated` | ✗ — labels sourced from `Constants::DEFAULT_PATTERNS`, 6 bare string literals, `_()` dropped | **gap** |
 
-A component no check exercises is unverified, per this task's own framing,
-even where the earlier inventory calls it "exists". These three are recorded
-as open, not as failures — the drive script passing does not cover them, and
-nothing else in the repo does either.
+Widget count, CSS and signal wiring are all correct (confirmed by the drive
+suite's checks around part add/remove and the pattern menu) — only the text
+axis fails, and only for these 16 strings. Full detail, byte-identical
+English and port sites: `translation-parity.md`. Recorded here too per that
+skill's rule that a text-axis gap belongs in both ledgers.
+
+## Re-ran this round's gate
+
+```
+nix develop --command xvfb-run -a rake drive
+...
+47 of 47 checks passed
+DRIVE OK
+```
+
+Matches the stated runtime gate (47/47, 0 failed) — reproduced live, not
+taken on faith. One non-fatal defect inside the run: step 24's screenshot
+(`tmp/shots/06-half-view.png`) throws `RuntimeError: widget produced no
+render node (not realised yet?)` and the file is never written, while the
+*check* for that step still passes. Cosmetic to the gate's pass/fail number,
+real as a drive-script defect (see `test-parity.md`).
+
+## Units no check exercises — unverified, not done
+
+Per this round's framing ("a component no check exercises is unverified, not
+done"), restating and re-confirming the previous round's three items, plus
+one addition found this round:
+
+1. **The six `Gtk.FileDialog` flows** (`file_dialogs.rb`) — native file
+   pickers are not drivable by this headless harness; no check asserts
+   filter lists, the save-changes-then-discard branch, or cancel handling.
+2. **Non-WAV export** (MP3/OGG/FLAC via the `ffmpeg` subprocess in
+   `file_encoder.rb`) — the drive script opens the export dialog (checks
+   38–39) but never runs an export to completion in any format, WAV
+   included. `check_pattern_service.rb` does verify the WAV encoder's RIFF
+   header in isolation, which is real coverage of that one format's writer,
+   but not of the dialog-to-disk path or the other three formats.
+3. **Any of the 28 shipped locales** — there is nothing in the port's test
+   surface that loads the app under a non-English `LANGUAGE=`/`LC_ALL=` and
+   asserts a translated string appears on screen. `translation-parity.md`
+   notes this as an unrun check as well; recorded here because it is also a
+   component-behaviour claim ("the UI speaks 28 languages") with zero live
+   verification.
+4. **New this round** — the MIDI-mapping dialog's actual MIDI-note
+   reassignment and the drag-and-drop reorder/insert paths in
+   `drag_drop.rb` are opened/shown by the drive script (checks 36–37, 42–43)
+   but the *effect* of reassigning a note or completing a drop is not
+   asserted anywhere; only that the dialog/placeholder appears.
+
+None of these four is reported as a failure — each is a real absence of
+verification on a component the earlier inventory lists as built. Treat them
+as the next four items in line for the `test-parity` backlog, not as
+disproof of the "exists" claim in `component-inventory.md`, which is about
+construction, not behavioural proof.
