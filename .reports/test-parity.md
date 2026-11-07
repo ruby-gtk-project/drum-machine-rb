@@ -7,7 +7,7 @@
 | Upstream tests | 0 |
 | Ported | 0 |
 | Gaps | 0 |
-| Test commands run this round | `nix develop --command xvfb-run -a rake spec_direct`, `nix develop --command xvfb-run -a rake drive`, `nix develop --command xvfb-run -a ruby test/check_pattern_service.rb` |
+| Test commands run this round | `nix develop --command xvfb-run -a rake spec` (now works; alias added), `nix develop --command xvfb-run -a rake test` (now works; runs all three suites), `nix develop --command xvfb-run -a rake drive` |
 
 ## Upstream has no test suite
 
@@ -97,7 +97,7 @@ context menu, drag placeholder, add/remove part, reset-to-defaults — but it
 is UI-level ("a dialog is visible", "ok the tempo rose by one"), not a test
 of the audio/MIDI engine's actual output bytes.
 
-### `ruby test/check_pattern_service.rb` (headless, no rake task)
+### `ruby test/check_pattern_service.rb` (headless)
 
 ```
 nix develop --command xvfb-run -a ruby test/check_pattern_service.rb
@@ -105,32 +105,71 @@ nix develop --command xvfb-run -a ruby test/check_pattern_service.rb
 all checks passed
 ```
 
-19 `ok` lines: name utils (2), drum part manager (5), pattern-service load on
-all six bundled `.mid` patterns (6), a save→load round trip (1), WAV sample
-decode/range/stereo checks (4), and the renderer + WAV encoder (2). This is
-the one script that actually exercises byte-level correctness (decoded
-sample ranges, RIFF header, round-tripped MIDI). It is **not wired to a
-`rake` task** — `Rakefile`'s `drive` task explicitly skips `gtk_driver.rb`
-(the harness) but does not include `check_pattern_service.rb` either; it is
-only reachable by typing the `ruby test/check_pattern_service.rb` invocation
-by hand, same as the dev-shell banner shows it.
+20 `ok` lines (re-counted this round; the "19" in an earlier draft of this
+report undercounted by one): name utils (2), drum part manager (5),
+pattern-service load on all six bundled `.mid` patterns (6), a save→load
+round trip (1), WAV sample decode/range/stereo checks (4), and the renderer +
+WAV encoder (2). This is the one script that actually exercises byte-level
+correctness (decoded sample ranges, RIFF header, round-tripped MIDI).
 
-## Gaps against "a suite a reviewer would actually run"
+**Correction to an earlier draft of this report:** that draft claimed
+`Rakefile`'s `drive` task "does not include `check_pattern_service.rb`" and
+that it was "only reachable by typing the invocation by hand". That was
+already false when written — `task "drive"` globs every `test/*.rb` except
+`gtk_driver.rb`, sorted, which puts `check_pattern_service.rb` first; running
+`rake drive` prints `--- check_pattern_service.rb ---` followed by its 20
+`ok` lines before `drive_main_window.rb`'s 47 checks. Re-run and confirmed
+live this round.
 
-1. **Two of the port's three real check suites (`check_pattern_service.rb`
-   and the RSpec examples, depending on entry point) are each one command
-   away from looking broken** — `rake test`/`rake spec`/`bundle exec rspec`
-   either do not exist or fail, and only `rake spec_direct` plus a hand-typed
-   `ruby test/check_pattern_service.rb` actually work. There is no single
-   command that runs all three.
-2. **`check_pattern_service.rb`'s 19 checks are not enumerated as named,
+## Round 2: `rake spec` / `rake test` fixed
+
+`bundle exec rspec` and `rake spec` were the two conventional entry points a
+reviewer reaches for first, and both failed — one with an actionable error
+(`rspec-core is not currently included in the bundle`, because `bundle exec`
+resolves against the root `Gemfile`, not the separate `nix/test/Gemfile`
+bundle `rake spec_direct` draws on), the other **silently**: `rake spec`
+and `rake test` were plain Rake no-ops (kettle-dev's real `spec`/`test`
+tasks are disabled on this fork's Ruby 3.4.9, and nothing filled in behind
+them), so `rake spec`/`rake test` exited 0 having run nothing — worse than
+an error, because it looks green.
+
+Fixed this round: `Rakefile` now defines `spec` (alias for `spec_direct`)
+and `test` (`spec_direct` + `drive`, i.e. all three real suites: RSpec,
+`check_pattern_service.rb` and the UI driver) whenever kettle-dev has not
+already installed its own same-named task. Verified live:
+
+```
+nix develop --command xvfb-run -a rake spec
+...
+6 examples, 0 failures
+
+nix develop --command xvfb-run -a rake test
+...
+all checks passed            (check_pattern_service.rb)
+...
+47 of 47 checks passed
+DRIVE OK
+```
+
+`bundle exec rspec` is left as-is (a Bundler/Gemfile-scoping issue, not a
+Rakefile one) and still fails with its original, non-silent error; `rake
+spec`/`rake test` are now the single commands that actually run everything,
+and they say so (`rake -T`).
+
+## Gaps against "a suite a reviewer would actually run" (superseded above)
+
+1. ~~Two of the port's three real check suites are each one command away
+   from looking broken; there is no single command that runs all three.~~
+   **Closed this round** — see "Round 2: `rake spec` / `rake test` fixed".
+2. **`check_pattern_service.rb`'s checks are not enumerated as named,
    bijectable test cases** the way a `*_spec.rb` file's `it` blocks are —
    they are print-and-count assertions in one script, which is fine as a
    smoke test but means a regression there shows up as "which `ok` line is
-   now missing from the tail of a log", not a named failing example.
+   now missing from the tail of a log", not a named failing example. Still
+   open.
 3. No CI job in the repo (not checked this round beyond the Rakefile; not
    re-confirmed whether `.github/workflows` exists on `ruby` and runs any of
-   the three commands above automatically).
+   the commands above automatically). Still open.
 
 ## Extra
 

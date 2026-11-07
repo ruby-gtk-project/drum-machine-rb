@@ -590,15 +590,22 @@ Rows that look like gaps and are not:
 
 Component coverage is complete, so the open work is not *component* work:
 
-- **test-parity** — `spec/` has only `spec_helper.rb` and a README; `test/`
-  holds three hand-run drive scripts (`drive_main_window.rb`,
-  `check_pattern_service.rb`, `gtk_driver.rb`).
-- **translation-parity** — `po/` has not been carried over at all; upstream
-  ships 28 locales plus `drum-machine.pot`, and `POTFILES.in` lists 17 files.
+- **test-parity** — `test/check_pattern_service.rb` and `test/drive_main_window.rb`
+  are now wired into `rake drive`/`rake test` (see translation-parity round 2
+  addendum below for the rest of this file's history); `spec/` still has only
+  `spec_helper.rb` plus the 6-example suite `rake spec`/`rake spec_direct` run.
 - **data** — `data/` carries the 10 drumkit WAVs, the 6 `.mid` patterns, the
   app icon, the symbolic app icon and `share-symbolic.svg` (the export
   button's icon). Upstream's `.Devel` and `.Source` icon variants are not in
   the fork's `data/` — cosmetic, not a component.
-- **metadata** — `.desktop.in` and `.metainfo.xml.in` are not ported.
 - **not ported, by decision** — `src/services/preset_service.py` (dead code),
   the empty GSettings schema (no keys), and all meson/flatpak/snap plumbing.
+
+**Addendum (round 2, 2026-11-07):** the two lines this section used to carry —
+"`po/` has not been carried over at all" and "`.desktop.in`/`.metainfo.xml.in`
+are not ported" — are now false and have been removed rather than left to
+mislead a future reader. As of this round: `po/` holds all 28 upstream
+locales plus `LINGUAS`/`POTFILES.in`, rewritten to Ruby paths, with `.mo`
+files built under `locale/` (see `.reports/translation-parity.md`); and
+`data/io.github.revisto.drum-machine.desktop.in` and `...metainfo.xml.in`
+are byte-identical to upstream (`diff` empty both ways). Both are closed.

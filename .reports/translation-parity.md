@@ -6,8 +6,8 @@
 | Port | `ruby` @ `adc4970` |
 | Domain | `drum-machine` (matches; `lib/drum_machine/translation.rb` binds this exact name) |
 | Upstream messages (source, excl. `po/`) | 259 |
-| Ported | 243 |
-| Gaps | **16** |
+| Ported | 259 (round 2; see "Verdict (round 2 update)" below — was 243) |
+| Gaps | **0** (round 2; was 16) |
 | Extra (untranslated) | 0 real (4 scanner artefacts, see below) |
 | Upstream languages | 28 `.po` files, `LINGUAS` matches |
 | Languages shipped by the port | 28 `.po` + 28 compiled `.mo` under `locale/` |
@@ -133,7 +133,19 @@ earlier draft of this ledger is not misread as 4 more gaps than the 16 above.
 - **On-screen verification in a non-English locale** (`LANGUAGE=de` etc.)
   was not performed this round.
 
-## Verdict
+## Verdict (round 2 update)
+
+**Closed.** `lib/drum_machine/constants.rb` now `extend`s `DrumMachine::Translatable`
+and wraps all 16 `DEFAULT_DRUM_PARTS`/`DEFAULT_PATTERNS` literals in `_()`,
+byte-identical to the upstream msgids. Re-running
+`.claude/skills/translation-parity/scripts/msgid-census.sh .` shows all 16
+now as `single`-kind rows keyed from `constants.rb` (previously absent
+entirely, since a bare literal leaves no marker for the scanner to find).
+259/259 messages (100%) byte-identical and reachable; 0 gaps. 28/28
+languages shipped and wired to the right domain. The two metadata files and
+the `po/` plumbing remain solid.
+
+### Prior verdict (round 1, superseded above)
 
 **Not clean.** 243/259 messages (93.8%) byte-identical and reachable; 16/259
 (6.2%) — two entire upstream data tables — ported as untranslatable literals.

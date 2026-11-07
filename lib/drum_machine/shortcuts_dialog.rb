@@ -20,7 +20,10 @@ module DrumMachine
   # accelerator itself is read at `build` time from whichever table actually
   # binds it — WindowActions::ACTIONS or Application::ACTIONS — so the two
   # tables cannot drift silently; test/drive_main_window.rb asserts they
-  # still agree.
+  # still agree. The same action name is also set on the item's
+  # `action-name` GObject property (the Ruby binding exposes it as a plain
+  # `action_name=` setter), so the facet itself is populated, not only used
+  # internally to resolve the accelerator string.
   class ShortcutsDialog < Adwaita::ShortcutsDialog
     include Translatable
 
@@ -71,13 +74,19 @@ module DrumMachine
       def section(title, items)
         Adwaita::ShortcutsSection.new.tap do |group|
           group.title = p_("shortcut window", title)
-          items.each { |label, action_name| group.add(item(p_("shortcut window", label), accelerator_for(action_name))) }
+          items.each { |label, action_name| group.add(item(p_("shortcut window", label), accelerator_for(action_name), action_name)) }
         end
       end
 
       # Positional, not keyword, arguments — even though the error a no-argument
       # new raises advertises the signatures as "title: utf8, accelerator: utf8".
-      def item(label, accelerator) = Adwaita::ShortcutsItem.new(label, accelerator)
+      # The Ruby binding also exposes `action-name` as a plain `action_name=`
+      # setter (confirmed via the ruby-gtk skill's gir introspection), so the
+      # action each accelerator was looked up from is recorded on the item
+      # itself, not just used to resolve the accelerator string.
+      def item(label, accelerator, action_name)
+        Adwaita::ShortcutsItem.new(label, accelerator).tap { |i| i.action_name = action_name }
+      end
 
       # "win.foo"/"app.foo" to the accelerator string(s) that prefix's own
       # action table binds, space-joined the way GTK accepts multiple

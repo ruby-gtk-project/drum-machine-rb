@@ -72,24 +72,31 @@ accelerators agree with what is actually bound", asserts
 app.app.get_accels_for_action(action_name)` (canonicalised) for every
 `SECTIONS` entry. I ran it live this round (`rake drive`) and it passes.
 
-**What is still a real, narrower gap**, correcting the old finding rather
-than repeating it: `Adw.ShortcutsItem` upstream is given `action-name`
-directly as a GObject property (`src/gtk/shortcuts-dialog.blp`'s 15
-`action-name` lines) — the facet GTK uses to let `Adw.ShortcutsWindow`
-cross-reference an item against the app's actual accelerators and (on
-platforms where it matters) make the row itself actionable. The port's
-`item(label, accelerator) = Adwaita::ShortcutsItem.new(label, accelerator)`
-takes a pre-resolved accelerator string, never sets `action-name` on the
-widget itself. The *value* now matches (proven by the test above); the
-*facet* — the widget carrying its own action reference, the way upstream's
-does — is still absent. This is a correspondence worth recording, not a
-functional regression: there is no evidence `Adw.ShortcutsItem#action-name`
-drives any further runtime behavior beyond display in current libadwaita,
-and `Adwaita::ShortcutsItem.new` does not appear to expose an `action_name=`
-setter in the Ruby binding (not independently re-confirmed against the gir
-this round). Recorded for `component-parity.md`'s action axis rather than
-re-asserted as the open staleness risk the old report described, because
-that risk is specifically what the new test closes.
+**Closed this round.** The prior draft of this report recorded a narrower
+gap here: `Adw.ShortcutsItem` upstream is given `action-name` directly as a
+GObject property (`src/gtk/shortcuts-dialog.blp`'s 15 `action-name` lines),
+and the port's `item` helper only ever took a pre-resolved accelerator
+string, never setting `action-name` on the widget itself.
+
+Per the `ruby-gtk` skill, the binding was checked directly rather than
+guessed from memory:
+
+```ruby
+item = Adwaita::ShortcutsItem.new("Label", "<ctrl>q")
+item.respond_to?(:action_name=)   # => true
+```
+
+`Adwaita::ShortcutsItem` does expose `action_name=` (and `action_name`,
+`set_action_name`) as a plain setter over the GObject `action-name`
+property. `lib/drum_machine/shortcuts_dialog.rb`'s `item` helper now takes
+the action name alongside the label and accelerator and sets it:
+`Adwaita::ShortcutsItem.new(label, accelerator).tap { |i| i.action_name = action_name }`.
+The facet is populated with the same `"win.foo"`/`"app.foo"` string
+`SECTIONS` already carries and `accelerator_for` already resolves the
+accelerator from, so there is no second, independently-typed value to drift
+— both now come from one place. Re-ran `rake drive` live after the change;
+the shortcuts-dialog step (including the accelerator-agreement check) still
+passes.
 
 ## Scan counts (for the record, re-run this round)
 

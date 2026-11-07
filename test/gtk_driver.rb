@@ -176,21 +176,37 @@ module GtkDriver
     # GTK4 has no screenshot call. The route that works headlessly is to paint
     # the widget into a render node and hand that to a renderer, which returns
     # a texture that knows how to write a PNG.
+      # A widget that was just rebuilt (e.g. by a breakpoint-triggered
+      # relayout one tick earlier) can still be mid-allocation when a step
+      # asks for its screenshot, so the very next `to_node` comes back nil
+      # ("not realised yet"). Pumping GLib's default main context a few
+      # times gives GTK's own idle/layout callbacks a chance to run and
+      # settle the widget before giving up, instead of failing the shot on
+      # the first attempt.
+      def settle
+        5.times { GLib::MainContext.default.iteration(false) }
+      end
+
       def render(widget, path)
         Gsk::CairoRenderer.new.tap do |renderer|
           renderer.realize(nil)
 
           begin
-            Gtk::Snapshot.new.then do |snapshot|
-              Gtk::WidgetPaintable.new(widget).snapshot(snapshot, widget.width, widget.height)
-              snapshot.to_node.then do |node|
-                if node.nil?
-                  raise 'widget produced no render node (not realised yet?)'
-                end
-
-                renderer.render_texture(node, nil).save_to_png(path)
+            node = nil
+            4.times do |attempt|
+              settle if attempt.positive?
+              node = Gtk::Snapshot.new.then do |snapshot|
+                Gtk::WidgetPaintable.new(widget).snapshot(snapshot, widget.width, widget.height)
+                snapshot.to_node
               end
+              break unless node.nil?
             end
+
+            if node.nil?
+              raise 'widget produced no render node (not realised yet?)'
+            end
+
+            renderer.render_texture(node, nil).save_to_png(path)
           ensure
             renderer.unrealize
           end

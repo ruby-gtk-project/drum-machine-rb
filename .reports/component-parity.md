@@ -26,24 +26,31 @@ bound`) asserts this for all 15 items and passes — I ran it this round.
 
 | Widget | Up × | Port × | CSS | Signals | Actions | Text | Verdict |
 |---|---:|---:|---:|---|---|:-:|---|
-| `Adw.ShortcutsItem` | 15 | 15 | — | — | ✓ (value verified live by a drive check) / ✗ (no `action-name` GObject property set on the widget itself) | ✓ | **gap, narrowed**: the widget never carries `action-name` as a property; the value it displays is proven correct by test, not by inspection |
+| `Adw.ShortcutsItem` | 15 | 15 | — | — | ✓ (value verified live by a drive check; `action-name` GObject property now set via the binding's `action_name=` setter) | ✓ | **closed this round** — see `component-identification.md` |
 
-Still a gap because the facet (the property existing on the widget) is
-absent, not because the behaviour is wrong — the behaviour is now actively
-tested and correct. Downgrading this from "no test catching it" (false
-today) to "the property itself is unset" (true today, and low severity) is
-itself a finding: a stale parity document would have continued reporting a
-closed risk as open.
+**Closed this round.** The Ruby binding was checked directly (per the
+`ruby-gtk` skill) rather than assumed from the earlier draft's "does not
+appear to expose" hedge: `Adwaita::ShortcutsItem` does expose `action_name=`
+over the `action-name` GObject property. `shortcuts_dialog.rb`'s `item`
+helper now sets it from the same action name `SECTIONS` already carries and
+`accelerator_for` already resolves the accelerator from, so the facet and
+the value both come from one place. Re-ran `rake drive` live after the
+change; the shortcuts-dialog step and its accelerator-agreement check still
+pass. See `component-identification.md` for the exact gir check run.
 
-## New gap found this round: default drum-part and pattern names are untranslated
+## Gap found in a prior round, closed this round: default drum-part and pattern names are untranslated
 
-This is a **text-axis** gap on two units the existing inventory marks
+This was a **text-axis** gap on two units the existing inventory marks
 "exists" with no gap noted:
 
 - **Unit 8** (`src/ui/drum_grid_builder.py` → `lib/drum_machine/drum_grid.rb`
   + `drum_part_manager.rb`) — the ten default `drum-part-button` row labels.
 - **Unit 5** (`src/window.ui` → `pattern menu` → `lib/drum_machine/pattern_menu.rb`)
   — the six default pattern-menu entries.
+
+**Closed this round** — see `.reports/translation-parity.md`'s "Verdict
+(round 2 update)": `lib/drum_machine/constants.rb` now wraps all 16
+`DEFAULT_DRUM_PARTS`/`DEFAULT_PATTERNS` literals in `_()`.
 
 | Widget | Up × | Port × | CSS | Signals | Text | Verdict |
 |---|---:|---:|---|---|:-:|---|
@@ -66,11 +73,15 @@ DRIVE OK
 ```
 
 Matches the stated runtime gate (47/47, 0 failed) — reproduced live, not
-taken on faith. One non-fatal defect inside the run: step 24's screenshot
-(`tmp/shots/06-half-view.png`) throws `RuntimeError: widget produced no
-render node (not realised yet?)` and the file is never written, while the
-*check* for that step still passes. Cosmetic to the gate's pass/fail number,
-real as a drive-script defect (see `test-parity.md`).
+taken on faith. **Fixed this round:** step 24's screenshot
+(`tmp/shots/06-half-view.png`) used to intermittently throw `RuntimeError:
+widget produced no render node (not realised yet?)` right after the
+breakpoint-triggered rebuild, leaving the file unwritten even though the
+*check* for that step passed. `test/gtk_driver.rb`'s `render` now retries up
+to 3 extra times, pumping `GLib::MainContext.default.iteration(false)`
+between attempts to let the widget finish laying out, before raising. Ran
+`rake drive` three times in a row live after the change; `06-half-view.png`
+was written every time.
 
 ## Units no check exercises — unverified, not done
 

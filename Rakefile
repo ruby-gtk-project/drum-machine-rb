@@ -225,6 +225,22 @@ task "spec_direct" do
   exit(exit_code) unless exit_code.zero?
 end
 
+# `rake spec`/`rake test` are the conventional entry points a reviewer tries
+# first. When kettle-dev installs its own (Ruby >= 4.0 only, see above) they
+# already do something; when it does not — the case on this fork's Ruby
+# 3.4.9 — Rake still accepts both names as no-op tasks with no body, so they
+# exit 0 having silently run nothing. Give them a real body in that case
+# instead of leaving a silent, misleadingly-green entry point.
+unless Rake::Task.task_defined?("spec")
+  desc "Run the spec/ suite (alias for spec_direct; see its comment for why)"
+  task "spec" => "spec_direct"
+end
+
+unless Rake::Task.task_defined?("test")
+  desc "Run every check suite: spec/, test/check_pattern_service.rb and the headless UI drivers"
+  task "test" => ["spec_direct", "drive"]
+end
+
 # The two hand-written driver scripts under test/ are the suite that actually
 # exercises the running app (see test/README via the ruby-gtk-testing skill);
 # they need a display, which is why they are run under xvfb-run rather than
