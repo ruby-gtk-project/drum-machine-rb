@@ -133,3 +133,19 @@ unported. Recording the process gap here too — a widget's accessible
 name/description is as much part of its identity as its CSS classes, and
 should be scanned for and reconciled the same way on every future round of
 this skill.
+
+## Round 5: the facet above is closed — this document was one commit stale
+
+This file (last touched at `ab1b8d0`) still described the accessible-name/
+description facet as "unported" above. The very next commit on this branch,
+`c5697b1`, fixed it: `lib/drum_machine/window.rb`'s `accessible_widget`
+helper now builds each of the four widgets from a one-object
+`Gtk::Builder` XML fragment carrying a real `<accessibility>` block, sourced
+from the same `p_("accessibility", ...)`/`_(...)` strings. Read directly
+against `HEAD` this round, not taken on another report's word — confirmed
+present at `lib/drum_machine/window.rb:499-512` and exercised by a passing
+`rake drive` (47/47) and `rake spec_direct` (6/6) run this round. The
+accessible-properties facet is now part of this file's standing widget-
+identity checklist (type, CSS, signals, actions, owner, **accessibility
+label/description**) for any future round. See `accountability-ensurance.md`'s
+"Round 5" for the same staleness named as a process failure.

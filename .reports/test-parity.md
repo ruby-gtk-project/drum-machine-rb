@@ -171,6 +171,21 @@ and they say so (`rake -T`).
    re-confirmed whether `.github/workflows` exists on `ruby` and runs any of
    the commands above automatically). Still open.
 
+## Round 4: the CI gap above is closed, and the gate figure is re-confirmed at 47
+
+`.github/workflows/ci.yml` exists on `ruby` (added before this audit chain's
+first round) and runs `nix develop --command rake drive` and
+`nix develop --command xvfb-run -a rake spec_direct` on every push/PR — item
+3 above is closed, not merely unchecked. `rake drive` on its own invokes
+both `test/check_pattern_service.rb` (20 checks) and
+`test/drive_main_window.rb` (47 checks, the suite whose own "N of M" summary
+line is what this round's runtime gate — 47 checks, 0 failed, 18
+components — reads from), so CI exercises all three real suites except that
+`check_pattern_service.rb`'s 20 checks are not independently named in CI
+output beyond the `rake drive` log. Re-ran `rake drive` and `rake
+spec_direct` live this round from a clean shell: 20 + 47 checks and 6
+examples all pass, 0 failures, matching every number above.
+
 ## Extra
 
 - `test/drive_main_window.rb` — 47 checks, headless UI/behaviour driver.

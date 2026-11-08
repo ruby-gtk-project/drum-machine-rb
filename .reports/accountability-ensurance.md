@@ -165,3 +165,45 @@ looking for, without re-deriving the total, is a false green**, structurally
 identical to the thing this skill is here to catch in `PORTING.md`-style
 documents — the party that most needs re-checking is the author of the
 "all clear."
+
+## Round 5: this file itself had gone stale — the thing it exists to catch
+
+Re-auditing fresh against `HEAD` (`c5697b1`, one commit past the `ab1b8d0`
+this file and `component-identification.md` were last written against):
+the 7-message accessibility gap this file's own "Summary" and "New material
+finding" sections above still describe as open ("`window.rb` never calls
+`update_property` or sets any accessible property at all") **was fixed in
+the very next commit, `c5697b1`**, which this file was never updated to
+reflect. Read fresh this round:
+
+- `lib/drum_machine/window.rb:499-512` builds `file_pattern_button`,
+  `menu_button`, `export_audio_button` and `bpm_spin_button` via
+  `accessible_widget`, a `Gtk::Builder#add_from_string` one-object XML
+  fragment carrying a real `<accessibility>` block populated from the
+  already-localized `p_("accessibility", ...)`/`_(...)` strings — confirmed
+  by reading the method body directly, not taken from `component-parity.md`'s
+  word for it.
+- Re-ran the msgid census myself this round (`msgid-census.sh` against a
+  fresh `origin/main` worktree and this tree): the join that found 23
+  missing keys in round 3 (7 real + ~19 `shortcut window` scanner
+  artefacts, re-confirmed by reading `shortcuts_dialog.rb`'s `SECTIONS`
+  table directly) now finds the 19 artefacts only — 0 real gaps.
+- `rake drive` (47/47) and `rake spec_direct` (6/6) both re-ran clean this
+  round, live, matching this round's stated gate (47 checks, 18
+  components).
+- `.github/workflows/ci.yml` (added before `ab1b8d0`, not new this round)
+  already runs `rake drive` and `rake spec_direct` on every push/PR — so
+  `test-parity.md`'s "no CI job" item, left open across three rounds as
+  "not checked", is also closed: a CI job exists and runs two of the
+  three real suites (not `check_pattern_service.rb` directly, though
+  `rake drive` does invoke it as a side effect of the `test/*.rb` glob).
+
+**This is exactly the failure this skill exists to catch, found one layer
+up from where round 4 found it:** a ledger (`accountability-ensurance.md`)
+and a sibling document (`component-identification.md`) kept asserting a gap
+was open for one commit cycle after the gap was closed, because closing the
+gap did not come with an instruction to go back and update every document
+that had named it. Updating both here and in
+`component-identification.md`. No new gap was found this round beyond this
+staleness; the port's own code has no open accessibility, translation, or
+test-runner gap as of `c5697b1`.
