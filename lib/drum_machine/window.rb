@@ -116,7 +116,11 @@ module DrumMachine
     def window_title = @window_title ||= Adwaita::WindowTitle.new(_("Drum Machine"), "")
 
     def file_pattern_button
-      @file_pattern_button ||= Adwaita::SplitButton.new.tap do |button|
+      @file_pattern_button ||= accessible_widget(
+        "AdwSplitButton",
+        p_("accessibility", "Open Pattern"),
+        _("Open Saved Drum Pattern"),
+      ).tap do |button|
         button.label = _("Open…")
         button.use_underline = true
         button.tooltip_text = _("Open Pattern")
@@ -124,14 +128,22 @@ module DrumMachine
     end
 
     def menu_button
-      @menu_button ||= Gtk::MenuButton.new.tap do |button|
+      @menu_button ||= accessible_widget(
+        "GtkMenuButton",
+        p_("accessibility", "Main Menu"),
+        _("Access Keyboard Shortcuts and Application Information"),
+      ).tap do |button|
         button.icon_name = "open-menu-symbolic"
         button.tooltip_text = _("Main Menu")
       end
     end
 
     def export_audio_button
-      @export_audio_button ||= Gtk::Button.new.tap do |button|
+      @export_audio_button ||= accessible_widget(
+        "GtkButton",
+        p_("accessibility", "Export Audio…"),
+        _("Export Current Drum Pattern as Audio File"),
+      ).tap do |button|
         button.icon_name = "share-symbolic"
         button.tooltip_text = _("Export Audio…")
         button.add_css_class("export-button")
@@ -190,7 +202,14 @@ module DrumMachine
     end
 
     def bpm_spin_button
-      @bpm_spin_button ||= Gtk::SpinButton.new(bpm_adjustment, 1, 0).tap do |button|
+      @bpm_spin_button ||= accessible_widget(
+        "GtkSpinButton",
+        _("Tempo"),
+        _("Adjust Tempo In Beats per Minute (BPM)"),
+      ).tap do |button|
+        button.adjustment = bpm_adjustment
+        button.climb_rate = 1
+        button.digits = 0
         button.tooltip_text = _("Adjust Tempo In Beats per Minute (BPM)")
         button.valign = :center
       end
@@ -463,6 +482,38 @@ module DrumMachine
     def focus = window.focus
 
     private
+
+      # Upstream's src/window.ui gives file_pattern_button, menu_button,
+      # export_audio_button and bpm_spin_button an <accessibility> block with
+      # a screen-reader label/description distinct from their visible
+      # tooltip. Gtk::Accessible#update_property exists and is callable, but
+      # raises "TODO: in Ruby -> GIArgument(array/C)[interface(enum)]
+      # (GtkAccessibleProperty)" (NotImplementedError) for any array of
+      # GtkAccessibleProperty, regardless of whether the array holds symbols
+      # or raw integers — these bindings cannot marshal that argument at all
+      # (the same limitation alarm_day_picker_row.rb in gnome-clocks-rb hit).
+      # GtkBuilder's own XML accessibility parsing goes through C and never
+      # crosses that broken path, so each of these four widgets is built from
+      # a one-object XML fragment carrying its <accessibility> block, then
+      # configured exactly as before via tap.
+      def accessible_widget(gtk_class, a11y_label, a11y_description)
+        Gtk::Builder.new.tap do |builder|
+          builder.add_from_string(<<~XML)
+            <interface>
+              <object class="#{gtk_class}" id="w">
+                <accessibility>
+                  <property name="label">#{xml_escape(a11y_label)}</property>
+                  <property name="description">#{xml_escape(a11y_description)}</property>
+                </accessibility>
+              </object>
+            </interface>
+          XML
+        end.get_object("w")
+      end
+
+      def xml_escape(text)
+        text.gsub("&", "&amp;").gsub("<", "&lt;").gsub(">", "&gt;").gsub('"', "&quot;")
+      end
 
       def beats_per_page_for(is_tiny)
         if is_tiny

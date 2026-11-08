@@ -216,3 +216,50 @@ still had these 7 keys sitting in it the whole time.
 28/28 languages shipped and wired to the right domain. The two metadata files
 and the `po/` plumbing are solid; the gap is narrow, named, and entirely
 confined to `constants.rb`.
+
+## Round 4: the 7-message accessibility gap is closed
+
+`lib/drum_machine/window.rb` now wraps all seven strings and attaches them as
+real accessible properties on the four widgets, not just as translated text
+sitting unused:
+
+- `file_pattern_button`, `menu_button`, `export_audio_button` each call
+  `p_("accessibility", "Open Pattern" / "Main Menu" / "Export Audio…")` for
+  the accessible label and `_("Open Saved Drum Pattern")` /
+  `_("Access Keyboard Shortcuts and Application Information")` /
+  `_("Export Current Drum Pattern as Audio File")` for the accessible
+  description — byte-identical msgids to `src/window.ui`, same
+  `msgctxt "accessibility"` on the three label strings, none on `Tempo`,
+  matching upstream exactly.
+- `bpm_spin_button` calls `_("Tempo")` for its accessible label and
+  `_("Adjust Tempo In Beats per Minute (BPM)")` (already in use as the
+  tooltip) for its accessible description.
+
+Round 3's own note already flagged that `Gtk::Accessible#update_property`
+"is bound and callable" but did not verify it actually *works* when called —
+it does not. Calling it this round, with any array of
+`GtkAccessibleProperty` (symbols or raw integers), raises `NotImplementedError`
+with `"TODO: in Ruby -> GIArgument(array/C)[interface(enum)]
+(GtkAccessibleProperty)"` — confirmed live, and independently corroborated by
+`gnome-clocks-rb`'s `alarm_day_picker_row.rb`, which hit the identical
+limitation and worked around it differently (folding the fuller text into the
+tooltip instead). This is a genuine gem/binding limitation, not a port
+oversight, so round 3's "nothing stops this port from calling it" is itself
+superseded here.
+
+The actual fix routes around the broken Ruby method entirely: each of the
+four widgets is now constructed via `Gtk::Builder#add_from_string` from a
+one-object XML fragment carrying a `<accessibility>` block built from the
+already-localized `_()`/`p_()` strings, then configured exactly as before
+(`tooltip_text`, `icon_name`, `menu_model`, signals, …) via `tap`.
+`Gtk::Builder`'s own XML-to-accessible-property path runs in C and never
+crosses the broken Ruby array-marshalling code, so the properties are set
+for real. Re-ran `.claude/skills/translation-parity/scripts/msgid-census.sh`
+fresh against `origin/main` and the port tree this round: all 7 msgids now
+appear on the port side, sourced from `lib/drum_machine/window.rb`, with the
+same `(msgctxt, msgid)` keys as `src/window.ui`.
+
+**Updated verdict: 259/259 messages (100%) byte-identical and reachable.**
+Re-derived, not carried over — this is the number that follows from actually
+re-running the census this round, which is the same discipline round 3 used
+to overturn round 2's premature "Closed".

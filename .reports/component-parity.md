@@ -4,7 +4,7 @@
 |---|---|
 | Upstream | `main` @ `fe31c4c` |
 | Port | `ruby` @ `adc4970`, re-audited at `HEAD` (`2b7e413`) |
-| Units with parity | 19 / 21, **minus a new accessibility-axis gap found this round on 4 of those "closed" units** (below) |
+| Units with parity | 19 / 21; the accessibility-axis gap found on 4 of those "closed" units earlier this round (below) is fixed as of this update |
 
 This builds on `.reports/component-inventory.md` (21 units) and
 `.reports/component-identification.md` (this round's re-check, including a
@@ -126,6 +126,47 @@ Everything else about these four widgets (type, CSS classes, signal wiring,
 visible label/tooltip text) is correct and already covered above or in
 `component-inventory.md` — only the accessible-properties facet is missing,
 on all four, with no exception.
+
+### Update: fixed this round, and the "not a binding gap" call above was wrong
+
+Calling `update_property` for real — not just checking it is in
+`instance_methods` — raises:
+
+```
+NotImplementedError: TODO: in Ruby -> GIArgument(array/C)[interface(enum)]
+(GtkAccessibleProperty)
+```
+
+for every form tried (`[:label, :description]` / integer property codes /
+single-element arrays), because the two-array signature's enum array can't
+be marshaled by these bindings at all — the failure is before the value
+even matters. This is the exact limitation `gnome-clocks-rb`'s
+`alarm_day_picker_row.rb` already hit and worked around by folding the
+intended accessible text into the tooltip instead; it independently
+confirms this is a genuine gem limitation, not something specific to this
+app. The previous paragraph's "nothing stops this port from making the
+call" was wrong — something does.
+
+The actual fix (in `lib/drum_machine/window.rb`) builds each of the four
+widgets from a one-object `Gtk::Builder` XML fragment carrying the
+`<accessibility>` block (built from the already-localized `_()`/`p_()`
+strings, see `translation-parity.md`'s round 4), then configures the rest
+exactly as before via `tap`. `GtkBuilder`'s XML parser sets the accessible
+properties in C, never crossing the broken Ruby array-marshalling path, so
+this routes around the limitation rather than needing it fixed upstream in
+the bindings.
+
+| Widget | A11y label | A11y description | Verdict |
+|---|:-:|:-:|---|
+| `Adw.SplitButton` `file_pattern_button` | ✓ | ✓ | **parity** |
+| `Gtk.MenuButton` `menu_button` | ✓ | ✓ | **parity** |
+| `Gtk.Button` `export_audio_button` | ✓ | ✓ | **parity** |
+| `Gtk.SpinButton` (BPM) | ✓ | ✓ | **parity** |
+
+Verified: `rake drive` (47/47) and `rake spec_direct` (6/6) both pass with
+the four widgets rebuilt this way, and a fresh `msgid-census.sh` run shows
+all 7 of the previously-unreachable accessibility msgids now sourced from
+`lib/drum_machine/window.rb`.
 
 ## Re-ran this round's gate
 
