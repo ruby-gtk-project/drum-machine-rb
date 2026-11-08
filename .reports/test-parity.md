@@ -174,14 +174,51 @@ and they say so (`rake -T`).
 ## Extra
 
 - `test/drive_main_window.rb` — 47 checks, headless UI/behaviour driver.
-- `test/check_pattern_service.rb` — 19 checks, audio/MIDI engine.
+- `test/check_pattern_service.rb` — 20 checks at runtime, audio/MIDI engine
+  (16 `check(...)` call sites in source; one, "`<pattern>` loads with active
+  beats", is inside a loop over the 6 bundled patterns, so it runs 6 times —
+  counted by re-running the suite live this round and counting the `ok`
+  lines, not by grepping call-site text).
 - `test/gtk_driver.rb` — the harness the two files above are built on, not a
   test file itself.
 - `spec/drum_machine/name_utils_spec.rb` — 6 RSpec examples.
 
 None of the above is parity work (upstream has nothing to be parity *with*),
 and none of it is required to close any upstream-test gap, because there is
-none. It is listed so the total testing picture — 47 + 19 + 6 = 72 checks,
+none. It is listed so the total testing picture — 47 + 20 + 6 = 73 checks,
 run across three different harnesses with three different invocations, two
 of which are not reachable through `rake`'s conventional task names — is on
 the record rather than only in the runtime-gate's single pass/fail number.
+
+## Round 3: re-ran the gate fresh, and the "63 checks" figure handed to this audit does not match what runs today
+
+Ran `nix develop --command xvfb-run -a rake drive` live, from a clean shell,
+not trusting any number carried over from a previous round or from this
+round's own brief:
+
+```
+--- check_pattern_service.rb ---
+... 20 "ok" lines ...
+all checks passed
+--- drive_main_window.rb ---
+... 47 "ok" steps ...
+47 of 47 checks passed
+DRIVE OK
+```
+
+20 + 47 = **67** checks passed, 0 failed — `drive_ok=true` is confirmed
+live, but the count is 67, not the 63 this audit round's own brief stated
+as the gate. `rake spec_direct` also passes live (6 examples, 0 failures,
+already covered above). I am recording the actual number I measured rather
+than repeating the figure I was handed, per this skill's own rule about not
+re-citing a claim as settled without re-deriving it — the same failure mode
+`accountability-ensurance.md` names against the previous round's
+"259/259, 0 gaps" translation verdict. The most likely explanation is that
+4 checks were added in a commit after whatever figure produced "63" (this
+branch's recent history includes "fix rake spec/test and a flaky
+screenshot" and two "Inventory upstream components" commits since), not
+that anything regressed — every check that runs, passes — but the
+discrepancy is worth a reader's eyes rather than silently reconciled,
+because a count that moves without anyone updating the number that gates
+the round is exactly the kind of untracked drift this audit exists to
+surface.

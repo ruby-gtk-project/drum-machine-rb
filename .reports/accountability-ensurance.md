@@ -129,3 +129,39 @@ re-claimed as fully closed here.
   Recording it here, in addition to `translation-parity.md` and
   `component-parity.md`, satisfies this skill's own rule that a real gap
   gets named with file:line rather than left implicit.
+
+## This round's own finding: the previous round's "Closed" was a false green
+
+This is the exact failure this skill exists to catch, and it was committed
+by this same audit chain, not by the porting work. The round-2
+`translation-parity.md` stated, in its own voice, not hedged:
+
+> **Closed.** ... 259/259 messages (100%) byte-identical and reachable; 0
+> gaps.
+
+That line was never re-derived from a full fresh census against the
+complete upstream key set — it was derived from re-running the census
+**only on the 16 keys the round already knew about** (the `constants.rb`
+fix) and generalising the result to "0 gaps" for all 259. Re-running
+`msgid-census.sh` fresh this round, over the full key set, with no prior
+result assumed, surfaces 23 keys the port's code never reaches, of which 7
+are a real, newly-named gap (the four controls' accessible
+label/description text in `window.ui` — `lib/drum_machine/window.rb` never
+calls `update_property` or sets any accessible property at all; see
+`component-parity.md` and `translation-parity.md`'s "Round 3" sections for
+the full trace with file:line on both sides). Rather than being an excuse
+construction (no sentence anywhere claimed these 7 were deliberately
+skipped — they were simply never looked for, which is a different and in
+some ways worse failure: a *verified-closed* ledger is harder for the next
+reader to re-open than an *unexamined* one, because it reads as checked).
+
+I did not catch this by re-reading the previous reports harder; I caught it
+by distrusting a green verdict enough to re-run the exact command that
+produced it, against the full input, instead of the narrower one. That is
+the standing instruction this skill exists to enforce, restated as a
+finding against this audit chain's own prior round rather than against the
+port: **a report that says "closed" after fixing the one thing it went
+looking for, without re-deriving the total, is a false green**, structurally
+identical to the thing this skill is here to catch in `PORTING.md`-style
+documents — the party that most needs re-checking is the author of the
+"all clear."

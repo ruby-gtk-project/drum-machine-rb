@@ -6,8 +6,8 @@
 | Port | `ruby` @ `adc4970` |
 | Domain | `drum-machine` (matches; `lib/drum_machine/translation.rb` binds this exact name) |
 | Upstream messages (source, excl. `po/`) | 259 |
-| Ported | 259 (round 2; see "Verdict (round 2 update)" below — was 243) |
-| Gaps | **0** (round 2; was 16) |
+| Ported | 252 (round 3 recount; round 2 claimed 259 without re-running the census — see "Round 3" below) |
+| Gaps | **7**, all accessible-label/description strings in `window.ui` never referenced by the port (round 3; round 2's "0" did not hold up) |
 | Extra (untranslated) | 0 real (4 scanner artefacts, see below) |
 | Upstream languages | 28 `.po` files, `LINGUAS` matches |
 | Languages shipped by the port | 28 `.po` + 28 compiled `.mo` under `locale/` |
@@ -133,17 +133,81 @@ earlier draft of this ledger is not misread as 4 more gaps than the 16 above.
 - **On-screen verification in a non-English locale** (`LANGUAGE=de` etc.)
   was not performed this round.
 
-## Verdict (round 2 update)
+## Round 3: re-ran the census independently, and the round-2 "259/259, 0 gaps" verdict does not hold
 
-**Closed.** `lib/drum_machine/constants.rb` now `extend`s `DrumMachine::Translatable`
-and wraps all 16 `DEFAULT_DRUM_PARTS`/`DEFAULT_PATTERNS` literals in `_()`,
-byte-identical to the upstream msgids. Re-running
-`.claude/skills/translation-parity/scripts/msgid-census.sh .` shows all 16
-now as `single`-kind rows keyed from `constants.rb` (previously absent
-entirely, since a bare literal leaves no marker for the scanner to find).
-259/259 messages (100%) byte-identical and reachable; 0 gaps. 28/28
-languages shipped and wired to the right domain. The two metadata files and
-the `po/` plumbing remain solid.
+Re-running `msgid-census.sh` fresh over both trees this round (not trusting
+the round-2 number), filtering out `po/`-sourced rows the same way the
+skill does, and joining on `(msgctxt, msgid)`:
+
+```
+comm -23 <(up keys) <(port keys)   # upstream keys the port cannot reach
+```
+
+returns **23** keys, not 0. Reading each by hand splits them into two very
+different findings:
+
+### 20 of the 23 are a scanner limitation, not a real gap
+
+All 20 carry `msgctxt "shortcut window"` and all 20 trace to
+`src/gtk/shortcuts-dialog.blp`'s `C_("shortcut window", "...")` titles
+("General", "Quit", "Play/Pause", "Clear All", "BPM & Volume", ... all 20
+section/item titles). `lib/drum_machine/shortcuts_dialog.rb`'s `SECTIONS`
+constant stores the identical English strings as hash keys/array literals,
+and `section`/`item` look each one up through
+`p_("shortcut window", title)` / `p_("shortcut window", label)` — a real
+`GetText#p_` (pgettext) call, correctly wired in `translation.rb`, with the
+exact upstream context string. The census script only resolves a literal
+string typed directly inside the `p_(...)` call; a call site like
+`p_("shortcut window", title)`, where `title` is a variable populated from a
+static table the script does not evaluate, is invisible to it even though
+the table's values are the same literals upstream uses, byte for byte. I
+confirmed this by hand, line by line, against
+`src/gtk/shortcuts-dialog.blp`. **Not a gap** — the `.po`/`.mo` files
+already carry these `(msgctxt, msgid)` pairs unchanged from upstream, so a
+translated build resolves them correctly at runtime. Recorded here instead
+of silently dropped, because this skill's own rule is that a citation to
+"the scanner found it" is not authority either way without reading the
+code behind it.
+
+### 7 of the 23 are a real gap: the window's accessible label/description text
+
+```
+accessibility  Export Audio…
+accessibility  Main Menu
+accessibility  Open Pattern
+-              Access Keyboard Shortcuts and Application Information
+-              Export Current Drum Pattern as Audio File
+-              Open Saved Drum Pattern
+-              Tempo
+```
+
+All seven are upstream's GtkBuilder `<accessibility>` blocks in
+`src/window.ui` (lines 56-59, 77-80, 90-93, 144-147) — the screen-reader
+label/description pair for `file_pattern_button`, `menu_button`,
+`export_audio_button` and the BPM spin button. `lib/drum_machine/window.rb`
+never references any of these seven strings, translated or not — it sets
+`tooltip_text` on the same four widgets (a different, separate string in
+three of the four cases) but calls nothing on the accessible-properties
+axis at all. These are not reachable by the port's code under any marker,
+so they are not merely "untranslated" the way the 16 `constants.rb`
+literals were — the behaviour itself (an accessible name/description
+distinct from the tooltip) was never built. See `component-parity.md`'s
+new section this round for the widget-level finding and the confirmation
+that the binding supports `update_property` and nothing stops this port
+from calling it.
+
+## Verdict (round 3, supersedes round 2's "Closed")
+
+**Not clean.** 252/259 messages (97.3%) byte-identical and reachable by the
+port's own `_`/`n_`/`p_` call sites; 7/259 (2.7%) — all four controls'
+accessible label/description pairs in `window.ui` — never referenced by the
+port at all. 28/28 languages shipped and wired to the right domain; the
+`po/` plumbing, the two metadata files, and the round-2 fix to
+`constants.rb` all remain solid and are not re-litigated here. Round 2's
+"259/259, 0 gaps, Closed" verdict was wrong: it closed the one gap it had
+gone looking for (`constants.rb`) and declared the whole ledger closed
+without re-running the census against the full upstream key set, which
+still had these 7 keys sitting in it the whole time.
 
 ### Prior verdict (round 1, superseded above)
 

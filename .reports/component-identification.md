@@ -108,3 +108,28 @@ component-scan.sh .                 → 147 rows
 Consistent with the prior round's numbers; no new widget-tree units found or
 lost since the last scan. Per-axis reconciliation is `component-parity.md`'s
 job, not this document's.
+
+## This round's addition: the accessible-properties facet
+
+Re-running the widget-type-count diff (upstream vs. port, summed across
+files, same scan) to look for genuine gaps behind the scanner's known
+over/under-report patterns, every discrepancy traced to a benign cause
+(type-annotation false positives, a factory call site the scan cannot
+multiply, or an app/menu-popover component that belongs to a different
+file in the same unit) — recorded in `component-parity.md` rather than
+repeated here, since each one is a parity verdict, not a new unit.
+
+One genuine miss, caught only because the component-identification table
+at the top of this document says to record CSS classes and signals as part
+of a widget's identity but says nothing about GtkBuilder's
+`<accessibility>` block — a fifth facet this skill's own table omits.
+`component-inventory.md` had already transcribed these blocks as plain
+prose notes on 4 widgets (`file_pattern_button`, `menu_button`,
+`export_audio_button`, the BPM spin button) without flagging them as a
+checkable facet, and no later round turned that note into a parity check
+until this one. See `component-parity.md`'s new section and
+`translation-parity.md`'s "Round 3" section for the finding: all 4 are
+unported. Recording the process gap here too — a widget's accessible
+name/description is as much part of its identity as its CSS classes, and
+should be scanned for and reconciled the same way on every future round of
+this skill.

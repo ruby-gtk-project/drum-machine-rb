@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | Upstream | `main` @ `fe31c4c` |
-| Port | `ruby` @ `adc4970` |
-| Units with parity | 19 / 21 (two gaps below; see also unexercised units at the end) |
+| Port | `ruby` @ `adc4970`, re-audited at `HEAD` (`2b7e413`) |
+| Units with parity | 19 / 21, **minus a new accessibility-axis gap found this round on 4 of those "closed" units** (below) |
 
 This builds on `.reports/component-inventory.md` (21 units) and
 `.reports/component-identification.md` (this round's re-check, including a
@@ -62,6 +62,70 @@ suite's checks around part add/remove and the pattern menu) — only the text
 axis fails, and only for these 16 strings. Full detail, byte-identical
 English and port sites: `translation-parity.md`. Recorded here too per that
 skill's rule that a text-axis gap belongs in both ledgers.
+
+## New gap this round: the accessible name/description axis is entirely unported
+
+`component-inventory.md` already records, as plain notes on units it marks
+"exists" with no gap, that four upstream controls carry a GtkBuilder
+`<accessibility>` block — a screen-reader-only label/description pair,
+separate from the visible tooltip:
+
+```
+src/window.ui:56-59   file_pattern_button   a11y label "Open Pattern" (msgctxt "accessibility")
+                                             a11y description "Open Saved Drum Pattern"
+src/window.ui:77-80   menu_button           a11y label "Main Menu" (msgctxt "accessibility")
+                                             a11y description "Access Keyboard Shortcuts and Application Information"
+src/window.ui:90-93   export_audio_button   a11y label "Export Audio…" (msgctxt "accessibility")
+                                             a11y description "Export Current Drum Pattern as Audio File"
+src/window.ui:144-147 bpm_spin_button       a11y label "Tempo"
+                                             a11y description "Adjust Tempo In Beats per Minute (BPM)"
+```
+
+That note was never followed up into a parity check. Reading
+`lib/drum_machine/window.rb` end to end this round: it sets `tooltip_text`
+on all four widgets (confirmed, lines 122/129/136/194), and **never calls
+anything on the accessible-properties axis at all** — no
+`update_property`, no `accessible_role=`, nothing. `grep -n
+"accessib" lib/drum_machine/window.rb` returns nothing.
+
+This is not a binding gap. Checked live, per the `ruby-gtk` skill, in the
+dev shell under `xvfb-run`:
+
+```ruby
+require "gtk4"
+Gtk::Widget.ancestors.include?(Gtk::Accessible)   # => true
+Gtk::Accessible.instance_methods.grep(/label|description|update_property/i)
+# => [:accessible_role, :set_accessible_role, :accessible_role=, :update_property]
+```
+
+`update_property` is bound and callable on any `Gtk::Widget`
+(`Gtk::Accessible` is in its ancestor chain) — the exact call upstream's
+GtkBuilder `<accessibility>` block compiles down to
+(`gtk_accessible_update_property(widget, GTK_ACCESSIBLE_PROPERTY_LABEL, ...)`
+/ `...DESCRIPTION...`). Nothing stops this port from making the call; it
+simply never does.
+
+A screen-reader user of the port hears whatever GTK synthesizes from the
+widget's own content/tooltip for these four controls instead of the
+deliberately separate, translated label/description text upstream
+authored — and for `export_audio_button`, which has no visible label at
+all (icon-only), that fallback is weaker still. This also means the four
+underlying message-catalogue entries are unreachable English literals the
+port's code never references as translatable text at all — see
+`translation-parity.md`, which found this independently via the msgid
+census and treats it as the same gap on the text axis.
+
+| Widget | Up × | Port × | A11y label | A11y description | Verdict |
+|---|---:|---:|:-:|:-:|---|
+| `Adw.SplitButton` `file_pattern_button` | 1 | 1 | ✗ | ✗ | **gap** |
+| `Gtk.MenuButton` `menu_button` | 1 | 1 | ✗ | ✗ | **gap** |
+| `Gtk.Button` `export_audio_button` | 1 | 1 | ✗ | ✗ | **gap** |
+| `Gtk.SpinButton` (BPM) | 1 | 1 | ✗ | ✗ | **gap** |
+
+Everything else about these four widgets (type, CSS classes, signal wiring,
+visible label/tooltip text) is correct and already covered above or in
+`component-inventory.md` — only the accessible-properties facet is missing,
+on all four, with no exception.
 
 ## Re-ran this round's gate
 
