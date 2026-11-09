@@ -4,16 +4,24 @@ name: CI
 # plain actions/setup-ruby runner has, so CI reuses the same flake.nix the
 # dev-shell banner tells a human to use — nix develop + xvfb-run, not a
 # separately maintained CI-only setup.
+
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ruby]
   pull_request:
 
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
 jobs:
   drive-and-spec:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: cachix/install-nix-action@v27
       - name: Run the headless driver scripts (test/*.rb)
         run: nix develop --command rake drive
